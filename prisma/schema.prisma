@@ -1,6 +1,6 @@
 // Prisma schema voor RepairFlow
 // LOKAAL: SQLite (bestand, geen setup nodig)
-// PRODUCTIE (Vercel): verander provider naar "postgresql" en DATABASE_URL naar je Neon/Supabase connectionstring
+// PRODUCTIE (Vercel): verander provider naar "postgresql" en DATABASE_URL naar je Neon/Supabase connectionstringss
 
 generator client {
   provider = "prisma-client-js"
