@@ -36,7 +36,7 @@ export default async function HomePage() {
       <section className="container-page grid items-center gap-12 py-16 md:grid-cols-2 md:py-24">
         <div>
           <span className="eyebrow">★ 4,9 op basis van klantreviews</span>
-          <h1 className="mt-5 font-display text-4xl font-700 leading-[1.05] text-ink md:text-5xl">
+          <h1 className="mt-5 font-display text-4xl font-800 leading-[1.05] text-ink md:text-5xl">
             Toestel stuk?<br />
             <span className="text-brand-600">Boek in 2 minuten</span> hersteld.
           </h1>
@@ -70,10 +70,10 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="section-kicker">Diensten</p>
-            <h2 className="mt-2 font-display text-2xl font-700 text-ink md:text-3xl">
-              Wat moet er gerepareerd worden?
+            <h2 className="mt-2 font-display text-2xl font-800 text-ink md:text-3xl">
+              Welk merk moet er gerepareerd worden?
             </h2>
-            <p className="mt-2 text-ink/60">Kies je toestel om alle reparaties en prijzen te zien.</p>
+            <p className="mt-2 text-ink/60">Kies eerst je merk of toestel — daarna zie je alle reparaties en prijzen.</p>
           </div>
           <Link href="/diensten" className="text-sm font-semibold text-brand-600 hover:underline">
             Alle diensten bekijken →

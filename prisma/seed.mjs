@@ -54,6 +54,48 @@ async function main() {
         { name: "Batterij vervangen", priceCents: 7900, durationMin: 60 },
       ],
     },
+    {
+      name: "Apple Watch",
+      slug: "applewatch",
+      services: [
+        { name: "Scherm vervangen", priceCents: 8900, durationMin: 45 },
+        { name: "Batterij vervangen", priceCents: 6900, durationMin: 45 },
+      ],
+    },
+    {
+      name: "iMac",
+      slug: "imac",
+      services: [
+        { name: "Scherm vervangen", priceCents: 24900, durationMin: 90 },
+        { name: "SSD/opslag vervangen", priceCents: 14900, durationMin: 60 },
+      ],
+    },
+    {
+      name: "Samsung Galaxy Tab",
+      slug: "samsunggalaxytab",
+      services: [
+        { name: "Scherm vervangen", priceCents: 10900, durationMin: 60 },
+        { name: "Batterij vervangen", priceCents: 7900, durationMin: 60 },
+      ],
+    },
+    {
+      name: "PlayStation",
+      slug: "playstation",
+      services: [
+        { name: "HDMI-poort herstellen", priceCents: 6900, durationMin: 60 },
+        { name: "Oververhitting/fan reinigen", priceCents: 4900, durationMin: 45 },
+        { name: "Controller stick drift herstellen", priceCents: 3900, durationMin: 30 },
+      ],
+    },
+    {
+      name: "Xbox",
+      slug: "xbox",
+      services: [
+        { name: "HDMI-poort herstellen", priceCents: 6900, durationMin: 60 },
+        { name: "Oververhitting/fan reinigen", priceCents: 4900, durationMin: 45 },
+        { name: "Controller stick drift herstellen", priceCents: 3900, durationMin: 30 },
+      ],
+    },
   ];
 
   for (let i = 0; i < data.length; i++) {

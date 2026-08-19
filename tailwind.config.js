@@ -7,35 +7,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#171512",
-        paper: "#FBF8F2",
-        line: "#E7E0D3",
+        ink: "#0F172A",
+        paper: "#F5F8FF",
+        line: "#E2E8F0",
         brand: {
-          50: "#EAFBF4",
-          100: "#CFF4E4",
-          400: "#1FB980",
-          500: "#0E9C6B",
-          600: "#0B7D56",
-          700: "#095F42",
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          400: "#3B82F6",
+          500: "#2563EB",
+          600: "#1D4ED8",
+          700: "#1E40AF",
         },
-        mint: "#2FBE73",
-        amber: "#DB8A25",
-        rose: "#D8425A",
+        mint: "#10B981",
+        amber: "#F59E0B",
+        rose: "#E11D48",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(23,21,18,0.05), 0 10px 28px -14px rgba(23,21,18,0.18)",
-        pop: "0 14px 34px -10px rgba(14,156,107,0.4)",
+        card: "0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.12)",
+        pop: "0 14px 34px -10px rgba(37,99,235,0.4)",
       },
       borderRadius: {
-        xl2: "1.5rem",
-      },
-      backgroundImage: {
-        "grain-radial":
-          "radial-gradient(circle at 15% 10%, rgba(14,156,107,0.10), transparent 45%), radial-gradient(circle at 85% 0%, rgba(219,138,37,0.10), transparent 40%)",
+        xl2: "1.25rem",
       },
     },
   },
