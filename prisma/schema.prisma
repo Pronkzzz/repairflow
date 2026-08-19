@@ -1,0 +1,53 @@
+// Prisma schema voor RepairFlow
+// LOKAAL: SQLite (bestand, geen setup nodig)
+// PRODUCTIE (Vercel): verander provider naar "postgresql" en DATABASE_URL naar je Neon/Supabase connectionstring
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    // bv. "iPhone", "Samsung", "MacBook"
+  slug     String    @unique
+  order    Int       @default(0)
+  services Service[]
+}
+
+model Service {
+  id          String        @id @default(cuid())
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  name        String        // bv. "Scherm vervangen"
+  priceCents  Int           // prijs in centen, voorkomt afrondingsfouten
+  durationMin Int           @default(60)
+  active      Boolean       @default(true)
+  appointments Appointment[]
+  createdAt   DateTime      @default(now())
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id])
+  customerName  String
+  email         String
+  phone         String
+  date          String   // YYYY-MM-DD
+  timeSlot      String   // "09:00"
+  status        String   @default("pending") // pending | confirmed | done | cancelled
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Admin {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+}
