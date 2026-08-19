@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import CategoryCard from "@/components/CategoryCard";
-import DeviceStatusVisual from "@/components/DeviceStatusVisual";
+import HeroDeviceCollage from "@/components/HeroDeviceCollage";
+import { getLang, getDict } from "@/lib/i18n";
 
 export const revalidate = 0;
 
@@ -18,49 +19,48 @@ async function getCategoriesWithFromPrice() {
   }));
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }) {
+  const sp = await searchParams;
+  const lang = getLang(sp);
+  const dict = getDict(lang);
+  const langQS = lang === "en" ? "?lang=en" : "";
   const categories = await getCategoriesWithFromPrice();
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader searchParams={sp} />
 
       {/* Hero */}
       <section className="container-page grid items-center gap-12 py-16 md:grid-cols-2 md:py-24">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-sm font-semibold text-brand-700">
-            ★ 4,9 op basis van klantreviews
+            {dict.hero.badge}
           </span>
           <h1 className="mt-5 font-display text-4xl font-800 leading-tight text-ink md:text-5xl">
-            Toestel stuk?<br />
-            <span className="text-brand-500">Boek in 2 minuten</span> hersteld.
+            {dict.hero.title1}<br />
+            <span className="text-brand-500">{dict.hero.title2}</span> {dict.hero.title3}
           </h1>
-          <p className="mt-5 max-w-md text-lg text-ink/60">
-            Kies je toestel, kies het probleem en boek meteen een tijdslot.
-            Transparante prijzen, meestal klaar binnen het uur.
-          </p>
+          <p className="mt-5 max-w-md text-lg text-ink/60">{dict.hero.subtitle}</p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/boeken" className="btn-primary">
-              Maak een afspraak
+            <Link href={`/boeken${langQS}`} className="btn-primary">
+              {dict.hero.cta1}
             </Link>
             <Link href="#prijzen" className="btn-secondary">
-              Bekijk prijzen
+              {dict.hero.cta2}
             </Link>
           </div>
         </div>
-        <DeviceStatusVisual />
+        <HeroDeviceCollage categories={categories} />
       </section>
 
       {/* Categories */}
       <section id="diensten" className="container-page py-16">
-        <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">
-          Wat moet er gerepareerd worden?
-        </h2>
-        <p className="mt-2 text-ink/60">Kies je toestel om alle reparaties en prijzen te zien.</p>
+        <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">{dict.sections.watTitle}</h2>
+        <p className="mt-2 text-ink/60">{dict.sections.watSub}</p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((cat) => (
-            <CategoryCard key={cat.id} category={cat} fromPriceCents={cat.fromPriceCents} />
+            <CategoryCard key={cat.id} category={cat} fromPriceCents={cat.fromPriceCents} langQS={langQS} />
           ))}
         </div>
       </section>
@@ -68,13 +68,20 @@ export default async function HomePage() {
       {/* How it works */}
       <section id="hoe-het-werkt" className="bg-white py-20">
         <div className="container-page">
-          <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">Hoe het werkt</h2>
+          <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">{dict.sections.hoeTitle}</h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
-            {[
-              { title: "Kies je reparatie", desc: "Selecteer je toestel en het probleem — je ziet meteen de prijs." },
-              { title: "Kies een tijdslot", desc: "Boek een moment dat jou uitkomt, vandaag of later deze week." },
-              { title: "Breng het toestel binnen", desc: "Wij herstellen het terwijl je wacht of later ophaalt." },
-            ].map((step, i) => (
+            {(lang === "en"
+              ? [
+                  { title: "Pick your repair", desc: "Select your device and the issue — you'll see the price right away." },
+                  { title: "Pick a time slot", desc: "Book a moment that suits you, today or later this week." },
+                  { title: "Bring in your device", desc: "We fix it while you wait, or you pick it up later." },
+                ]
+              : [
+                  { title: "Kies je reparatie", desc: "Selecteer je toestel en het probleem — je ziet meteen de prijs." },
+                  { title: "Kies een tijdslot", desc: "Boek een moment dat jou uitkomt, vandaag of later deze week." },
+                  { title: "Breng het toestel binnen", desc: "Wij herstellen het terwijl je wacht of later ophaalt." },
+                ]
+            ).map((step, i) => (
               <div key={step.title} className="card p-6">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 font-display font-700 text-white">
                   {i + 1}
@@ -89,13 +96,13 @@ export default async function HomePage() {
 
       {/* Pricing preview */}
       <section id="prijzen" className="container-page py-20">
-        <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">Populaire reparaties</h2>
+        <h2 className="font-display text-2xl font-700 text-ink md:text-3xl">{dict.sections.prijzenTitle}</h2>
         <div className="mt-8 overflow-hidden rounded-xl2 border border-line">
           <PricingTable />
         </div>
       </section>
 
-      <SiteFooter />
+      <SiteFooter lang={lang} />
     </>
   );
 }

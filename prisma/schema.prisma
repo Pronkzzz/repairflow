@@ -16,6 +16,7 @@ model Category {
   name     String    // bv. "iPhone", "Samsung", "MacBook"
   slug     String    @unique
   order    Int       @default(0)
+  imageUrl String?   // productfoto van het toestel, getoond op home + nav
   services Service[]
 }
 
