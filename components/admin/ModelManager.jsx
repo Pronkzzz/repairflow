@@ -80,26 +80,85 @@ export default function ModelManager({ categoryId, models }) {
 
 function ModelRow({ model, onDelete, onSaved }) {
   const [imageUrl, setImageUrl] = useState(model.imageUrl || "");
-  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState(model.name || "");
+  const [savingImage, setSavingImage] = useState(false);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState(null);
+  const [justSaved, setJustSaved] = useState(false);
 
   async function saveImage(overrideUrl) {
     const url = overrideUrl !== undefined ? overrideUrl : imageUrl;
-    setSaving(true);
+    setSavingImage(true);
     await fetch(`/api/admin/models/${model.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ imageUrl: url }),
     });
-    setSaving(false);
+    setSavingImage(false);
+    onSaved();
+  }
+
+  async function saveName() {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setNameError("Naam mag niet leeg zijn.");
+      setName(model.name || "");
+      return;
+    }
+    if (trimmed === model.name) return;
+
+    setSavingName(true);
+    setNameError(null);
+    const res = await fetch(`/api/admin/models/${model.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSavingName(false);
+
+    if (!res.ok) {
+      setNameError(data.error || "Kon naam niet opslaan.");
+      setName(model.name || "");
+      return;
+    }
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
     onSaved();
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line p-3">
+    <div className="flex flex-wrap items-start gap-3 rounded-lg border border-line p-3">
       <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-paper">
-        <DeviceImage imageUrl={imageUrl} name={model.name} className="h-full w-full" iconWrapClassName="p-1.5" />
+        <DeviceImage imageUrl={imageUrl} name={name} className="h-full w-full" iconWrapClassName="p-1.5" />
       </span>
-      <span className="min-w-[120px] font-medium text-ink">{model.name}</span>
+
+      <div className="min-w-[140px]">
+        <input
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setNameError(null);
+          }}
+          onBlur={saveName}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              setName(model.name || "");
+              setNameError(null);
+              e.currentTarget.blur();
+            }
+          }}
+          placeholder="Modelnaam"
+          className={`w-full rounded-lg border px-3 py-2 text-sm font-medium text-ink ${
+            nameError ? "border-rose" : "border-line"
+          }`}
+        />
+        {nameError && <p className="mt-1 text-xs font-medium text-rose">{nameError}</p>}
+        {savingName && <p className="mt-1 text-xs text-ink/40">opslaan…</p>}
+        {justSaved && !savingName && <p className="mt-1 text-xs font-medium text-mint">Opgeslagen ✓</p>}
+      </div>
+
       <input
         value={imageUrl}
         onChange={(e) => setImageUrl(e.target.value)}
@@ -113,7 +172,7 @@ function ModelRow({ model, onDelete, onSaved }) {
           saveImage(url);
         }}
       />
-      {saving && <span className="text-xs text-ink/40">opslaan…</span>}
+      {savingImage && <span className="text-xs text-ink/40">opslaan…</span>}
       <button onClick={onDelete} className="text-sm font-medium text-rose hover:underline">
         Verwijderen
       </button>

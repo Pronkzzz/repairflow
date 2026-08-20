@@ -3,14 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const LABELS = {
+const STEPS = [
+  { value: "confirmed", label: "Bevestigen", activeClass: "bg-brand-600 text-white border-brand-600" },
+  { value: "done", label: "Afgerond", activeClass: "bg-mint text-white border-mint" },
+  { value: "cancelled", label: "Annuleren", activeClass: "bg-rose text-white border-rose" },
+];
+
+const CURRENT_LABELS = {
   pending: "In afwachting",
   confirmed: "Bevestigd",
   done: "Afgerond",
   cancelled: "Geannuleerd",
 };
 
-const COLORS = {
+const CURRENT_COLORS = {
   pending: "bg-amber/10 text-amber",
   confirmed: "bg-brand-50 text-brand-600",
   done: "bg-mint/10 text-mint",
@@ -22,8 +28,9 @@ export default function StatusSelect({ appointmentId, status }) {
   const [current, setCurrent] = useState(status);
   const [saving, setSaving] = useState(false);
 
-  async function handleChange(e) {
-    const newStatus = e.target.value;
+  async function setStatus(newStatus) {
+    if (newStatus === current || saving) return;
+    const previous = current;
     setSaving(true);
     setCurrent(newStatus);
 
@@ -34,21 +41,46 @@ export default function StatusSelect({ appointmentId, status }) {
     });
 
     setSaving(false);
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      router.refresh();
+    } else {
+      setCurrent(previous);
+    }
   }
 
   return (
-    <select
-      value={current}
-      onChange={handleChange}
-      disabled={saving}
-      className={`rounded-full border-0 px-3 py-1.5 text-xs font-semibold ${COLORS[current]} disabled:opacity-60`}
-    >
-      {Object.entries(LABELS).map(([value, label]) => (
-        <option key={value} value={value}>
-          {label}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-wrap items-center gap-2">
+      <span
+        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${CURRENT_COLORS[current]} ${
+          saving ? "opacity-60" : ""
+        }`}
+      >
+        {CURRENT_LABELS[current]}
+      </span>
+
+      <div className="flex flex-wrap gap-1.5">
+        {STEPS.filter((s) => s.value !== current).map((s) => (
+          <button
+            key={s.value}
+            type="button"
+            disabled={saving}
+            onClick={() => setStatus(s.value)}
+            className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink/60 transition hover:border-ink/30 hover:text-ink disabled:opacity-50"
+          >
+            {s.label}
+          </button>
+        ))}
+        {current !== "pending" && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => setStatus("pending")}
+            className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink/60 transition hover:border-ink/30 hover:text-ink disabled:opacity-50"
+          >
+            Terugzetten
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
