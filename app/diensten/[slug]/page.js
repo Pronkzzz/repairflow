@@ -39,7 +39,7 @@ export default async function BrandPage({ params }) {
         orderBy: { priceCents: "asc" },
       },
       sections: { orderBy: { order: "asc" } },
-      models: { orderBy: { order: "asc" } },
+      models: { where: { active: true }, orderBy: { order: "asc" } },
     },
   });
 

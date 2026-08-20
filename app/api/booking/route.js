@@ -56,7 +56,7 @@ export async function POST(request) {
   let validModelId = null;
   if (modelId && typeof modelId === "string") {
     const model = await db.model.findUnique({ where: { id: modelId } });
-    if (model && model.categoryId === service.categoryId) {
+    if (model && model.active && model.categoryId === service.categoryId) {
       if (service.modelId && service.modelId !== model.id) {
         return NextResponse.json({ error: "Deze reparatie hoort bij een ander model." }, { status: 400 });
       }
