@@ -23,7 +23,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Ongeldige aanvraag." }, { status: 400 });
   }
 
-  const { serviceId, date, timeSlot, customerName, email, phone, notes } = body || {};
+  const { serviceId, modelId, date, timeSlot, customerName, email, phone, notes } = body || {};
 
   // --- Server-side validatie: nooit alleen op de client vertrouwen ---
   if (!serviceId || typeof serviceId !== "string") {
@@ -53,6 +53,14 @@ export async function POST(request) {
     return NextResponse.json({ error: "Deze dienst bestaat niet (meer)." }, { status: 400 });
   }
 
+  let validModelId = null;
+  if (modelId && typeof modelId === "string") {
+    const model = await db.model.findUnique({ where: { id: modelId } });
+    if (model && model.categoryId === service.categoryId) {
+      validModelId = model.id;
+    }
+  }
+
   // --- Voorkom overboeking: check nogmaals server-side, ook al is de client al gefilterd ---
   const bookedCount = await db.appointment.count({
     where: { date, timeSlot, status: { not: "cancelled" } },
@@ -67,6 +75,7 @@ export async function POST(request) {
   const appointment = await db.appointment.create({
     data: {
       serviceId,
+      modelId: validModelId,
       date,
       timeSlot,
       customerName: customerName.trim(),

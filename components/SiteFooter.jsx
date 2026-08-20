@@ -15,7 +15,7 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-white/80">Diensten</h4>
+          <h4 className="text-sm font-semibold text-white/80">Reparaties</h4>
           <ul className="mt-3 space-y-2 text-sm text-white/60">
             <li><Link href="/diensten" className="hover:text-white">Alle reparaties</Link></li>
             <li><Link href="/prijzen" className="hover:text-white">Prijzen</Link></li>

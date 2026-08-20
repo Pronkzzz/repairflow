@@ -6,6 +6,7 @@ export async function GET() {
     orderBy: { order: "asc" },
     include: {
       services: { where: { active: true }, orderBy: { name: "asc" } },
+      models: { orderBy: { order: "asc" } },
     },
   });
   return NextResponse.json({ categories });

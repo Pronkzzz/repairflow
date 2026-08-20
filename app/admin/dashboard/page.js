@@ -17,7 +17,7 @@ export default async function AdminDashboard({ searchParams }) {
 
   const appointments = await db.appointment.findMany({
     where: statusFilter ? { status: statusFilter } : {},
-    include: { service: { include: { category: true } } },
+    include: { service: { include: { category: true } }, model: true },
     orderBy: [{ date: "asc" }, { timeSlot: "asc" }],
   });
 
@@ -58,6 +58,7 @@ export default async function AdminDashboard({ searchParams }) {
           <thead className="bg-paper text-ink/50">
             <tr>
               <th className="px-5 py-3 font-medium">Klant</th>
+              <th className="px-5 py-3 font-medium">Model</th>
               <th className="px-5 py-3 font-medium">Reparatie</th>
               <th className="px-5 py-3 font-medium">Datum & tijd</th>
               <th className="px-5 py-3 font-medium">Prijs</th>
@@ -67,7 +68,7 @@ export default async function AdminDashboard({ searchParams }) {
           <tbody className="divide-y divide-line">
             {appointments.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-5 py-10 text-center text-ink/40">
+                <td colSpan={6} className="px-5 py-10 text-center text-ink/40">
                   Geen afspraken gevonden.
                 </td>
               </tr>
@@ -78,6 +79,7 @@ export default async function AdminDashboard({ searchParams }) {
                   <div className="font-medium text-ink">{a.customerName}</div>
                   <div className="text-xs text-ink/50">{a.email} · {a.phone}</div>
                 </td>
+                <td className="px-5 py-4 text-ink/70">{a.model?.name || "—"}</td>
                 <td className="px-5 py-4 text-ink/70">
                   {a.service.category.name} — {a.service.name}
                 </td>

@@ -69,7 +69,7 @@ export default async function HomePage() {
       <section id="diensten" className="container-page py-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="section-kicker">Diensten</p>
+            <p className="section-kicker">Reparaties</p>
             <h2 className="mt-2 font-display text-2xl font-800 text-ink md:text-3xl">
               Welk merk moet er gerepareerd worden?
             </h2>

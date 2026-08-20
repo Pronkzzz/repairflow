@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const STEPS = ["Toestel", "Reparatie", "Tijdstip", "Gegevens"];
+const STEPS = ["Toestel", "Model", "Reparatie", "Tijdstip", "Gegevens"];
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -18,6 +18,7 @@ export default function BookingFlow() {
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   const [categoryId, setCategoryId] = useState(null);
+  const [modelId, setModelId] = useState(null);
   const [serviceId, setServiceId] = useState(searchParams.get("dienst") || null);
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState([]);
@@ -34,22 +35,34 @@ export default function BookingFlow() {
     fetch("/api/services")
       .then((r) => r.json())
       .then((data) => {
-        setCategories(data.categories || []);
+        const cats = data.categories || [];
+        setCategories(cats);
+
         const preselectSlug = searchParams.get("categorie");
-        const preselect = data.categories?.find((c) => c.slug === preselectSlug);
+        const preselect = cats.find((c) => c.slug === preselectSlug);
         if (preselect) {
           setCategoryId(preselect.id);
-          if (serviceId) setStep(2);
-          else setStep(1);
+
+          const modelSlug = searchParams.get("model");
+          const preselectModel = preselect.models?.find((m) => m.slug === modelSlug);
+          if (preselectModel) setModelId(preselectModel.id);
+
+          if (serviceId) {
+            setStep(3);
+          } else if (preselectModel || !preselect.models || preselect.models.length === 0) {
+            setStep(2);
+          } else {
+            setStep(1);
+          }
         }
       })
       .finally(() => setLoadingCategories(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Laad tijdslots wanneer datum verandert (stap 3)
+  // Laad tijdslots wanneer datum verandert (stap 4)
   useEffect(() => {
-    if (step !== 2) return;
+    if (step !== 3) return;
     setLoadingSlots(true);
     setTimeSlot(null);
     fetch(`/api/slots?date=${date}`)
@@ -59,6 +72,11 @@ export default function BookingFlow() {
   }, [date, step]);
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
+  const hasModels = (selectedCategory?.models?.length || 0) > 0;
+  const selectedModel = useMemo(
+    () => selectedCategory?.models?.find((m) => m.id === modelId),
+    [selectedCategory, modelId]
+  );
   const selectedService = useMemo(
     () => selectedCategory?.services.find((s) => s.id === serviceId),
     [selectedCategory, serviceId]
@@ -73,7 +91,7 @@ export default function BookingFlow() {
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId, date, timeSlot, ...form }),
+        body: JSON.stringify({ serviceId, modelId, date, timeSlot, ...form }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -94,6 +112,7 @@ export default function BookingFlow() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/10 text-2xl">✅</div>
         <h2 className="mt-4 font-display text-2xl font-700 text-ink">Afspraak bevestigd!</h2>
         <p className="mt-2 text-ink/60">
+          {selectedModel ? `${selectedModel.name} — ` : ""}
           {selectedService?.name} — {date} om {timeSlot}. We sturen een bevestiging naar je e-mail.
         </p>
         <p className="mt-1 text-xs text-ink/40">Referentie: {confirmationId}</p>
@@ -137,8 +156,9 @@ export default function BookingFlow() {
                     key={cat.id}
                     onClick={() => {
                       setCategoryId(cat.id);
+                      setModelId(null);
                       setServiceId(null);
-                      setStep(1);
+                      setStep(cat.models?.length > 0 ? 1 : 2);
                     }}
                     className={`rounded-xl border p-4 text-left transition hover:border-brand-400 ${
                       categoryId === cat.id ? "border-brand-500 bg-brand-50" : "border-line"
@@ -152,17 +172,44 @@ export default function BookingFlow() {
           </div>
         )}
 
-        {/* Stap 2: Dienst */}
+        {/* Stap 2: Model */}
         {step === 1 && selectedCategory && (
           <div>
+            <h2 className="font-display text-xl font-700 text-ink">Welk model {selectedCategory.name}?</h2>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {selectedCategory.models.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setModelId(m.id);
+                    setStep(2);
+                  }}
+                  className={`rounded-xl border p-4 text-left transition hover:border-brand-400 ${
+                    modelId === m.id ? "border-brand-500 bg-brand-50" : "border-line"
+                  }`}
+                >
+                  <span className="font-medium text-ink">{m.name}</span>
+                </button>
+              ))}
+            </div>
+            <StepNav onBack={() => setStep(0)} />
+          </div>
+        )}
+
+        {/* Stap 3: Dienst */}
+        {step === 2 && selectedCategory && (
+          <div>
             <h2 className="font-display text-xl font-700 text-ink">Wat is het probleem?</h2>
+            {selectedModel && (
+              <p className="mt-1 text-sm text-ink/50">{selectedCategory.name} — {selectedModel.name}</p>
+            )}
             <div className="mt-5 space-y-2">
               {selectedCategory.services.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => {
                     setServiceId(s.id);
-                    setStep(2);
+                    setStep(3);
                   }}
                   className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition hover:border-brand-400 ${
                     serviceId === s.id ? "border-brand-500 bg-brand-50" : "border-line"
@@ -173,12 +220,12 @@ export default function BookingFlow() {
                 </button>
               ))}
             </div>
-            <StepNav onBack={() => setStep(0)} />
+            <StepNav onBack={() => setStep(hasModels ? 1 : 0)} />
           </div>
         )}
 
-        {/* Stap 3: Datum + tijd */}
-        {step === 2 && (
+        {/* Stap 4: Datum + tijd */}
+        {step === 3 && (
           <div>
             <h2 className="font-display text-xl font-700 text-ink">Kies datum en tijdstip</h2>
             <input
@@ -207,12 +254,12 @@ export default function BookingFlow() {
                 ))
               )}
             </div>
-            <StepNav onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!timeSlot} />
+            <StepNav onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={!timeSlot} />
           </div>
         )}
 
-        {/* Stap 4: Gegevens */}
-        {step === 3 && (
+        {/* Stap 5: Gegevens */}
+        {step === 4 && (
           <form onSubmit={handleSubmit}>
             <h2 className="font-display text-xl font-700 text-ink">Jouw gegevens</h2>
 
@@ -255,14 +302,18 @@ export default function BookingFlow() {
 
             {selectedService && (
               <div className="mt-5 rounded-lg bg-paper p-4 text-sm text-ink/70">
-                <strong className="text-ink">{selectedService.name}</strong> — {date} om {timeSlot} — €{(selectedService.priceCents / 100).toFixed(0)}
+                <strong className="text-ink">
+                  {selectedModel ? `${selectedModel.name} — ` : ""}
+                  {selectedService.name}
+                </strong>{" "}
+                — {date} om {timeSlot} — €{(selectedService.priceCents / 100).toFixed(0)}
               </div>
             )}
 
             {error && <p className="mt-4 text-sm font-medium text-rose">{error}</p>}
 
             <div className="mt-6 flex items-center justify-between">
-              <button type="button" onClick={() => setStep(2)} className="btn-secondary">
+              <button type="button" onClick={() => setStep(3)} className="btn-secondary">
                 Terug
               </button>
               <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-60">

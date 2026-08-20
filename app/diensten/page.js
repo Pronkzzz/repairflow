@@ -4,7 +4,7 @@ import SiteFooter from "@/components/SiteFooter";
 import CategoryCard from "@/components/CategoryCard";
 
 export const revalidate = 0;
-export const metadata = { title: "Diensten — RepairFlow" };
+export const metadata = { title: "Reparaties — RepairFlow" };
 
 async function getCategoriesWithFromPrice() {
   const categories = await db.category.findMany({
@@ -25,7 +25,7 @@ export default async function DienstenPage() {
       <SiteHeader />
 
       <section className="container-page py-16">
-        <p className="section-kicker">Diensten</p>
+        <p className="section-kicker">Reparaties</p>
         <h1 className="mt-2 font-display text-3xl font-800 text-ink md:text-4xl">
           Kies je toestel
         </h1>

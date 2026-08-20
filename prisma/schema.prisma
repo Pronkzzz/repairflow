@@ -1,6 +1,6 @@
 // Prisma schema voor RepairFlow
 // LOKAAL: SQLite (bestand, geen setup nodig)
-// PRODUCTIE (Vercel): verander provider naar "postgresql" en DATABASE_URL naar je Neon/Supabase connectionstringss
+// PRODUCTIE (Vercel): verander provider naar "postgresql" en DATABASE_URL naar je Neon/Supabase connectionstring
 
 generator client {
   provider = "prisma-client-js"
@@ -17,6 +17,19 @@ model Category {
   slug     String    @unique
   order    Int       @default(0)
   services Service[]
+  models   Model[]
+}
+
+model Model {
+  id          String        @id @default(cuid())
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  name        String        // bv. "iPhone 13"
+  slug        String        // bv. "iphone-13"
+  order       Int           @default(0)
+  appointments Appointment[]
+
+  @@unique([categoryId, slug])
 }
 
 model Service {
@@ -35,6 +48,8 @@ model Appointment {
   id            String   @id @default(cuid())
   serviceId     String
   service       Service  @relation(fields: [serviceId], references: [id])
+  modelId       String?
+  model         Model?   @relation(fields: [modelId], references: [id])
   customerName  String
   email         String
   phone         String
