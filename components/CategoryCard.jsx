@@ -1,5 +1,5 @@
 import Link from "next/link";
-import DeviceIcon from "./DeviceIcon";
+import DeviceImage from "./DeviceImage";
 
 export default function CategoryCard({ category, fromPriceCents }) {
   const price = (fromPriceCents / 100).toFixed(0);
@@ -8,8 +8,14 @@ export default function CategoryCard({ category, fromPriceCents }) {
       href={`/diensten/${category.slug}`}
       className="card group flex flex-col items-center gap-3 p-6 text-center transition hover:-translate-y-1 hover:border-brand-400 hover:shadow-pop"
     >
-      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 p-3">
-        <DeviceIcon slug={category.slug} />
+      <span className="h-16 w-16 overflow-hidden rounded-2xl bg-brand-50">
+        <DeviceImage
+          slug={category.slug}
+          icon={category.icon}
+          imageUrl={category.imageUrl}
+          name={category.name}
+          className="h-full w-full"
+        />
       </span>
       <span className="font-display text-base font-700 text-ink">{category.name}</span>
       <span className="text-sm text-ink/60">vanaf €{price}</span>

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import DeviceIcon from "@/components/DeviceIcon";
+import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
@@ -56,8 +56,15 @@ export default async function BrandPage({ params }) {
         </Link>
 
         <div className="mt-4 flex items-center gap-5">
-          <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-brand-50 p-4">
-            <DeviceIcon slug={category.slug} />
+          <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-50">
+            <DeviceImage
+              slug={category.slug}
+              icon={category.icon}
+              imageUrl={category.imageUrl}
+              name={category.name}
+              className="h-full w-full"
+              iconWrapClassName="p-4"
+            />
           </span>
           <div>
             <h1 className="font-display text-3xl font-800 text-ink">{category.name} reparaties</h1>
@@ -75,9 +82,19 @@ export default async function BrandPage({ params }) {
               <Link
                 key={m.id}
                 href={`/diensten/${category.slug}/${m.slug}`}
-                className="card flex items-center justify-between gap-3 p-5 transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-pop"
+                className="card flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-pop"
               >
-                <span className="font-display font-700 text-ink">{m.name}</span>
+                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-brand-50">
+                  <DeviceImage
+                    slug={category.slug}
+                    icon={category.icon}
+                    imageUrl={m.imageUrl || category.imageUrl}
+                    name={m.name}
+                    className="h-full w-full"
+                    iconWrapClassName="p-2"
+                  />
+                </span>
+                <span className="flex-1 font-display font-700 text-ink">{m.name}</span>
                 <span className="text-brand-600">→</span>
               </Link>
             ))}

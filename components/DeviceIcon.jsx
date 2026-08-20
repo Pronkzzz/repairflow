@@ -107,8 +107,19 @@ const REGISTRY = {
   nintendoswitch: Handheld,
 };
 
-export default function DeviceIcon({ slug, className = "" }) {
-  const Cmp = REGISTRY[slug] || Phone;
+export const ICON_OPTIONS = [
+  { key: "iphone", label: "Telefoon" },
+  { key: "ipad", label: "Tablet" },
+  { key: "samsunggalaxytab", label: "Tablet (groot)" },
+  { key: "macbook", label: "Laptop" },
+  { key: "imac", label: "Desktop" },
+  { key: "applewatch", label: "Horloge" },
+  { key: "playstation", label: "Spelconsole" },
+  { key: "nintendoswitch", label: "Handheld console" },
+];
+
+export default function DeviceIcon({ slug, icon, className = "" }) {
+  const Cmp = REGISTRY[icon] || REGISTRY[slug] || Phone;
   return (
     <span className={`text-brand-500 ${className}`}>
       <Cmp />

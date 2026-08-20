@@ -1,7 +1,7 @@
 import Link from "next/link";
+import NavMegaMenu from "./NavMegaMenu";
 
 const NAV = [
-  { href: "/diensten", label: "Reparaties" },
   { href: "/hoe-het-werkt", label: "Hoe het werkt" },
   { href: "/prijzen", label: "Prijzen" },
   { href: "/contact", label: "Contact" },
@@ -19,6 +19,7 @@ export default function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-ink/70 md:flex">
+          <NavMegaMenu />
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} className="transition hover:text-ink">
               {item.label}

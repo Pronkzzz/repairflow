@@ -17,6 +17,9 @@ export default function AdminLayout({ children }) {
             <Link href="/admin/diensten" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
               Diensten & prijzen
             </Link>
+            <Link href="/admin/toestellen" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
+              Merken & modellen
+            </Link>
           </nav>
           <div className="p-4">
             <LogoutButton />

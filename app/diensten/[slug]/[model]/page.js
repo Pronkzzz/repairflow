@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import DeviceIcon from "@/components/DeviceIcon";
+import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
@@ -40,8 +40,15 @@ export default async function ModelPage({ params }) {
         </Link>
 
         <div className="mt-4 flex items-center gap-5">
-          <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-brand-50 p-4">
-            <DeviceIcon slug={category.slug} />
+          <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-50">
+            <DeviceImage
+              slug={category.slug}
+              icon={category.icon}
+              imageUrl={model.imageUrl || category.imageUrl}
+              name={model.name}
+              className="h-full w-full"
+              iconWrapClassName="p-4"
+            />
           </span>
           <div>
             <h1 className="font-display text-3xl font-800 text-ink">{model.name}</h1>
