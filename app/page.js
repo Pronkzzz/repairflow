@@ -135,12 +135,22 @@ export default async function HomePage() {
 }
 
 async function PricingTable() {
-  const allServices = await db.service.findMany({
-    where: { active: true },
+  let allServices = await db.service.findMany({
+    where: { active: true, featured: true },
     include: { category: true },
-    orderBy: { priceCents: "asc" },
+    orderBy: [{ featuredOrder: "asc" }, { priceCents: "asc" }],
     take: 8,
   });
+
+  // Nog niets geselecteerd in admin? Toon voorlopig de 8 goedkoopste reparaties.
+  if (allServices.length === 0) {
+    allServices = await db.service.findMany({
+      where: { active: true },
+      include: { category: true },
+      orderBy: { priceCents: "asc" },
+      take: 8,
+    });
+  }
 
   return (
     <table className="w-full text-left text-sm">

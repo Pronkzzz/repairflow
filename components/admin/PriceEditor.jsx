@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function PriceEditor({ serviceId, priceCents, active }) {
+export default function PriceEditor({ serviceId, priceCents, active, featured, featuredOrder, onDeleted }) {
   const router = useRouter();
   const [value, setValue] = useState((priceCents / 100).toString());
   const [isActive, setIsActive] = useState(active);
+  const [isFeatured, setIsFeatured] = useState(featured || false);
+  const [order, setOrder] = useState(featuredOrder ?? 0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -16,6 +18,8 @@ export default function PriceEditor({ serviceId, priceCents, active }) {
     const payload = {
       priceCents: Math.round(Number(value) * 100),
       active: isActive,
+      featured: isFeatured,
+      featuredOrder: order,
       ...overrides,
     };
     const res = await fetch(`/api/admin/services/${serviceId}`, {
@@ -32,7 +36,7 @@ export default function PriceEditor({ serviceId, priceCents, active }) {
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center rounded-lg border border-line px-2">
         <span className="text-ink/40">€</span>
         <input
@@ -58,8 +62,45 @@ export default function PriceEditor({ serviceId, priceCents, active }) {
         Actief
       </label>
 
+      <label className="flex items-center gap-1.5 text-xs text-ink/60">
+        <input
+          type="checkbox"
+          checked={isFeatured}
+          onChange={(e) => {
+            setIsFeatured(e.target.checked);
+            save({ featured: e.target.checked });
+          }}
+        />
+        Toon op homepage
+      </label>
+
+      {isFeatured && (
+        <label className="flex items-center gap-1.5 text-xs text-ink/60">
+          Volgorde
+          <input
+            type="number"
+            value={order}
+            onChange={(e) => setOrder(e.target.value)}
+            onBlur={() => save()}
+            className="w-14 rounded-lg border border-line px-2 py-1"
+          />
+        </label>
+      )}
+
       {saving && <span className="text-xs text-ink/40">opslaan…</span>}
       {saved && <span className="text-xs text-mint">✓ opgeslagen</span>}
+
+      <button
+        type="button"
+        onClick={async () => {
+          if (!confirm("Deze reparatie verwijderen?")) return;
+          await fetch(`/api/admin/services/${serviceId}`, { method: "DELETE" });
+          router.refresh();
+        }}
+        className="text-xs font-medium text-rose hover:underline"
+      >
+        Verwijderen
+      </button>
     </div>
   );
 }

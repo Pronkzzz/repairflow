@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DeviceImage from "@/components/DeviceImage";
+import ImageUploadButton from "./ImageUploadButton";
 
 export default function ModelManager({ categoryId, models }) {
   const router = useRouter();
@@ -67,6 +68,7 @@ export default function ModelManager({ categoryId, models }) {
             className="w-full rounded-lg border border-line px-3 py-2 text-sm"
           />
         </label>
+        <ImageUploadButton onUploaded={(url) => setNewImage(url)} />
         <button type="submit" disabled={adding} className="btn-primary !px-4 !py-2 text-sm disabled:opacity-60">
           {adding ? "Bezig…" : "Toevoegen"}
         </button>
@@ -80,12 +82,13 @@ function ModelRow({ model, onDelete, onSaved }) {
   const [imageUrl, setImageUrl] = useState(model.imageUrl || "");
   const [saving, setSaving] = useState(false);
 
-  async function saveImage() {
+  async function saveImage(overrideUrl) {
+    const url = overrideUrl !== undefined ? overrideUrl : imageUrl;
     setSaving(true);
     await fetch(`/api/admin/models/${model.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl }),
+      body: JSON.stringify({ imageUrl: url }),
     });
     setSaving(false);
     onSaved();
@@ -100,9 +103,15 @@ function ModelRow({ model, onDelete, onSaved }) {
       <input
         value={imageUrl}
         onChange={(e) => setImageUrl(e.target.value)}
-        onBlur={saveImage}
+        onBlur={() => saveImage()}
         placeholder="Afbeelding-URL (optioneel)"
         className="min-w-[200px] flex-1 rounded-lg border border-line px-3 py-2 text-sm"
+      />
+      <ImageUploadButton
+        onUploaded={(url) => {
+          setImageUrl(url);
+          saveImage(url);
+        }}
       />
       {saving && <span className="text-xs text-ink/40">opslaan…</span>}
       <button onClick={onDelete} className="text-sm font-medium text-rose hover:underline">

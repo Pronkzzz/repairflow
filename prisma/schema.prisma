@@ -11,6 +11,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model Category {
   id       String    @id @default(cuid())
   name     String    // bv. "iPhone", "Samsung", "MacBook"
@@ -43,6 +44,8 @@ model Service {
   priceCents  Int           // prijs in centen, voorkomt afrondingsfouten
   durationMin Int           @default(60)
   active      Boolean       @default(true)
+  featured    Boolean       @default(false) // toont bij "Populaire reparaties" op homepage
+  featuredOrder Int         @default(0)
   appointments Appointment[]
   createdAt   DateTime      @default(now())
 }

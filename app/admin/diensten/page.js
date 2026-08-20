@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import PriceEditor from "@/components/admin/PriceEditor";
+import ServiceManager from "@/components/admin/ServiceManager";
 
 export const revalidate = 0;
 
@@ -13,7 +14,8 @@ export default async function AdminServicesPage() {
     <div>
       <h1 className="font-display text-2xl font-700 text-ink">Diensten & prijzen</h1>
       <p className="mt-1 text-sm text-ink/50">
-        Pas prijzen aan of schakel een reparatie tijdelijk uit — wijzigingen zijn meteen zichtbaar op de site.
+        Pas prijzen aan, schakel een reparatie tijdelijk uit, of vink "Toon op homepage" aan om ze bij
+        Populaire reparaties te tonen — wijzigingen zijn meteen zichtbaar op de site.
       </p>
 
       <div className="mt-8 space-y-8">
@@ -28,13 +30,20 @@ export default async function AdminServicesPage() {
                       <td className="px-5 py-3 font-medium text-ink">{s.name}</td>
                       <td className="px-5 py-3 text-ink/50">{s.durationMin} min</td>
                       <td className="px-5 py-3">
-                        <PriceEditor serviceId={s.id} priceCents={s.priceCents} active={s.active} />
+                        <PriceEditor
+                          serviceId={s.id}
+                          priceCents={s.priceCents}
+                          active={s.active}
+                          featured={s.featured}
+                          featuredOrder={s.featuredOrder}
+                        />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <ServiceManager categoryId={cat.id} />
           </div>
         ))}
       </div>

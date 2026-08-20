@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import DeviceImage from "@/components/DeviceImage";
 import { ICON_OPTIONS } from "@/components/DeviceIcon";
+import ImageUploadButton from "./ImageUploadButton";
 
 export default function CategoryImageEditor({ category }) {
   const router = useRouter();
@@ -53,6 +54,13 @@ export default function CategoryImageEditor({ category }) {
             className="w-full rounded-lg border border-line px-3 py-2 text-sm"
           />
         </label>
+
+        <ImageUploadButton
+          onUploaded={(url) => {
+            setImageUrl(url);
+            save({ imageUrl: url });
+          }}
+        />
 
         <label className="min-w-[180px]">
           <span className="mb-1 block text-xs font-medium text-ink/50">Icoon (als er geen afbeelding is)</span>
