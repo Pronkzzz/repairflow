@@ -42,6 +42,7 @@ export default async function BrandPage({ params }) {
     where: { slug },
     include: {
       services: { where: { active: true, modelId: null }, orderBy: { priceCents: "asc" } },
+      sections: { orderBy: { order: "asc" } },
       models: {
         orderBy: { order: "asc" },
         include: {
@@ -91,11 +92,18 @@ export default async function BrandPage({ params }) {
 
       <section className="container-page pb-24">
         {hasModels ? (
-          <div className="space-y-10">
-            {category.models.map((model) => {
-              const services = model.services.length ? model.services : category.services;
+          <div className="space-y-12">
+            {category.sections.map((section) => {
+              const sectionModels = category.models.filter((m) => m.sectionId === section.id);
+              if (!sectionModels.length) return null;
               return (
-                <section key={model.id} id={model.slug} className="scroll-mt-24">
+                <div key={section.id}>
+                  <h2 className="mb-5 font-display text-2xl font-800 text-ink">{section.name}</h2>
+                  <div className="space-y-10">
+                    {sectionModels.map((model) => {
+                      const services = model.services.length ? model.services : category.services;
+                      return (
+                        <section key={model.id} id={model.slug} className="scroll-mt-24">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-brand-50">
@@ -126,6 +134,30 @@ export default async function BrandPage({ params }) {
                   ) : (
                     <p className="text-sm text-ink/50">Binnenkort beschikbaar voor dit model.</p>
                   )}
+                        </section>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            {category.models.filter((m) => !m.sectionId).map((model) => {
+              const services = model.services.length ? model.services : category.services;
+              return (
+                <section key={model.id} id={model.slug} className="scroll-mt-24">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-brand-50">
+                        <DeviceImage slug={category.slug} icon={category.icon} imageUrl={model.imageUrl || category.imageUrl} name={model.name} className="h-full w-full" iconWrapClassName="p-2" />
+                      </span>
+                      <div>
+                        <h2 className="font-display text-xl font-800 text-ink">{model.name}</h2>
+                        <p className="text-sm text-ink/50">Reparaties voor dit model</p>
+                      </div>
+                    </div>
+                    <Link href={`/diensten/${category.slug}/${model.slug}`} className="text-sm font-semibold text-brand-600 hover:underline">Bekijk model →</Link>
+                  </div>
+                  {services.length ? <ServiceCards category={category} model={model} services={services} /> : <p className="text-sm text-ink/50">Binnenkort beschikbaar voor dit model.</p>}
                 </section>
               );
             })}

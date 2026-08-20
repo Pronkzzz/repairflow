@@ -189,21 +189,27 @@ export default function BookingFlow() {
         {step === 1 && selectedCategory && (
           <div>
             <h2 className="font-display text-xl font-700 text-ink">Welk model {selectedCategory.name}?</h2>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {selectedCategory.models.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => {
-                    setModelId(m.id);
-                    setStep(2);
-                  }}
-                  className={`rounded-xl border p-4 text-left transition hover:border-brand-400 ${
-                    modelId === m.id ? "border-brand-500 bg-brand-50" : "border-line"
-                  }`}
-                >
-                  <span className="font-medium text-ink">{m.name}</span>
-                </button>
-              ))}
+            <div className="mt-5 space-y-7">
+              {selectedCategory.sections?.map((section) => {
+                const sectionModels = selectedCategory.models.filter((m) => m.sectionId === section.id);
+                if (!sectionModels.length) return null;
+                return (
+                  <div key={section.id}>
+                    <h3 className="mb-3 font-display text-lg font-700 text-ink">{section.name}</h3>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {sectionModels.map((m) => <ModelButton key={m.id} model={m} selected={modelId === m.id} onSelect={() => { setModelId(m.id); setStep(2); }} />)}
+                    </div>
+                  </div>
+                );
+              })}
+              {selectedCategory.models.filter((m) => !m.sectionId).length > 0 && (
+                <div>
+                  {selectedCategory.sections?.length > 0 && <h3 className="mb-3 font-display text-lg font-700 text-ink">Overige modellen</h3>}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {selectedCategory.models.filter((m) => !m.sectionId).map((m) => <ModelButton key={m.id} model={m} selected={modelId === m.id} onSelect={() => { setModelId(m.id); setStep(2); }} />)}
+                  </div>
+                </div>
+              )}
             </div>
             <StepNav onBack={() => setStep(0)} />
           </div>
@@ -340,6 +346,19 @@ export default function BookingFlow() {
         )}
       </div>
     </div>
+  );
+}
+
+function ModelButton({ model, selected, onSelect }) {
+  return (
+    <button
+      onClick={onSelect}
+      className={`rounded-xl border p-4 text-left transition hover:border-brand-400 ${
+        selected ? "border-brand-500 bg-brand-50" : "border-line"
+      }`}
+    >
+      <span className="font-medium text-ink">{model.name}</span>
+    </button>
   );
 }
 

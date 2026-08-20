@@ -113,74 +113,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Pricing preview */}
-      <section id="prijzen" className="container-page py-20">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="section-kicker">Prijzen</p>
-            <h2 className="mt-2 font-display text-2xl font-700 text-ink md:text-3xl">Populaire reparaties</h2>
-          </div>
-          <Link href="/prijzen" className="text-sm font-semibold text-brand-600 hover:underline">
-            Volledige prijslijst →
-          </Link>
-        </div>
-        <div className="mt-8 overflow-hidden rounded-xl2 border border-line">
-          <PricingTable />
-        </div>
-      </section>
-
       <SiteFooter />
     </>
   );
 }
 
-async function PricingTable() {
-  let allServices = await db.service.findMany({
-    where: { active: true, featured: true },
-    include: { category: true, model: true },
-    orderBy: [{ featuredOrder: "asc" }, { priceCents: "asc" }],
-    take: 8,
-  });
-
-  // Nog niets geselecteerd in admin? Toon voorlopig de 8 goedkoopste reparaties.
-  if (allServices.length === 0) {
-    allServices = await db.service.findMany({
-      where: { active: true },
-      include: { category: true, model: true },
-      orderBy: { priceCents: "asc" },
-      take: 8,
-    });
-  }
-
-  return (
-    <table className="w-full text-left text-sm">
-      <thead className="bg-paper text-ink/50">
-        <tr>
-          <th className="px-6 py-3 font-medium">Toestel</th>
-          <th className="px-6 py-3 font-medium">Reparatie</th>
-          <th className="px-6 py-3 font-medium">Prijs</th>
-          <th className="px-6 py-3" />
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-line bg-white">
-        {allServices.map((s) => (
-          <tr key={s.id}>
-            <td className="px-6 py-4 font-medium text-ink">{s.model ? `${s.category.name} ${s.model.name}` : s.category.name}</td>
-            <td className="px-6 py-4 text-ink/70">{s.name}</td>
-            <td className="px-6 py-4 font-semibold text-brand-600">
-              €{(s.priceCents / 100).toFixed(0)}
-            </td>
-            <td className="px-6 py-4 text-right">
-              <Link
-                href={`/boeken?categorie=${s.category.slug}&dienst=${s.id}`}
-                className="text-sm font-semibold text-brand-600 hover:underline"
-              >
-                Boek →
-              </Link>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}

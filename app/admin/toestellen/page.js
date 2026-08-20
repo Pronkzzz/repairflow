@@ -7,15 +7,18 @@ export const revalidate = 0;
 export default async function AdminDevicesPage() {
   const categories = await db.category.findMany({
     orderBy: { order: "asc" },
-    include: { models: { orderBy: { order: "asc" } } },
+    include: {
+      sections: { orderBy: { order: "asc" } },
+      models: { orderBy: { order: "asc" } },
+    },
   });
 
   return (
     <div>
       <h1 className="font-display text-2xl font-700 text-ink">Merken & modellen</h1>
-      <p className="mt-1 text-sm text-ink/50">
-        Voeg per merk modellen toe (bv. iPhone 13, iPhone SE) en stel een eigen afbeelding of icoon in.
-        Prijzen pas je aan bij "Diensten & prijzen".
+      <p className="mt-1 max-w-2xl text-sm text-ink/50">
+        Maak per merk eigen secties, bijvoorbeeld <strong>Galaxy A</strong>, <strong>Galaxy S</strong> en
+        <strong> Galaxy Z</strong>. Sleep modellen daarna naar de juiste sectie. Dit werkt voor ieder merk.
       </p>
 
       <div className="mt-8 space-y-10">
@@ -28,8 +31,7 @@ export default async function AdminDevicesPage() {
             <CategoryImageEditor category={cat} />
 
             <div className="mt-6 border-t border-line pt-6">
-              <h3 className="text-sm font-semibold text-ink/70">Modellen</h3>
-              <ModelManager categoryId={cat.id} models={cat.models} />
+              <ModelManager categoryId={cat.id} models={cat.models} sections={cat.sections} />
             </div>
           </div>
         ))}
