@@ -7,28 +7,25 @@ import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
-async function getCategory(slug) {
-  return db.category.findUnique({
-    where: { slug },
-    include: {
-      services: { where: { active: true }, orderBy: { priceCents: "asc" } },
-      models: { orderBy: { order: "asc" } },
-    },
-  });
+function durationText(service) {
+  if (service.durationUnit === "uur") {
+    return `±${service.durationMin / 60} uur`;
+  }
+  return `±${service.durationMin} min`;
 }
 
-function ServiceList({ category, modelSlug }) {
+function ServiceCards({ category, model, services }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {category.services.map((s) => (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {services.map((s) => (
         <Link
           key={s.id}
-          href={`/boeken?categorie=${category.slug}${modelSlug ? `&model=${modelSlug}` : ""}&dienst=${s.id}`}
+          href={`/boeken?categorie=${category.slug}${model ? `&model=${model.slug}` : ""}&dienst=${s.id}`}
           className="card flex items-center justify-between gap-4 p-5 transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-pop"
         >
           <div>
             <span className="font-display font-700 text-ink">{s.name}</span>
-            <p className="mt-1 text-xs text-ink/50">±{s.durationMin} min</p>
+            <p className="mt-1 text-xs text-ink/50">{durationText(s)}</p>
           </div>
           <span className="shrink-0 font-display text-lg font-800 text-brand-600">
             €{(s.priceCents / 100).toFixed(0)}
@@ -41,7 +38,22 @@ function ServiceList({ category, modelSlug }) {
 
 export default async function BrandPage({ params }) {
   const { slug } = await params;
-  const category = await getCategory(slug);
+  const category = await db.category.findUnique({
+    where: { slug },
+    include: {
+      services: { where: { active: true, modelId: null }, orderBy: { priceCents: "asc" } },
+      models: {
+        orderBy: { order: "asc" },
+        include: {
+          services: {
+            where: { active: true },
+            orderBy: { priceCents: "asc" },
+          },
+        },
+      },
+    },
+  });
+
   if (!category) notFound();
 
   const hasModels = category.models.length > 0;
@@ -69,7 +81,9 @@ export default async function BrandPage({ params }) {
           <div>
             <h1 className="font-display text-3xl font-800 text-ink">{category.name} reparaties</h1>
             <p className="mt-1 text-ink/60">
-              {hasModels ? "Kies eerst je model." : "Kies hieronder het probleem — je ziet meteen de vaste prijs."}
+              {hasModels
+                ? "Per model zie je hieronder de beschikbare reparaties en prijzen."
+                : "Kies hieronder het probleem — je ziet meteen de vaste prijs."}
             </p>
           </div>
         </div>
@@ -77,32 +91,49 @@ export default async function BrandPage({ params }) {
 
       <section className="container-page pb-24">
         {hasModels ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {category.models.map((m) => (
-              <Link
-                key={m.id}
-                href={`/diensten/${category.slug}/${m.slug}`}
-                className="card flex items-center gap-4 p-5 transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-pop"
-              >
-                <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-brand-50">
-                  <DeviceImage
-                    slug={category.slug}
-                    icon={category.icon}
-                    imageUrl={m.imageUrl || category.imageUrl}
-                    name={m.name}
-                    className="h-full w-full"
-                    iconWrapClassName="p-2"
-                  />
-                </span>
-                <span className="flex-1 font-display font-700 text-ink">{m.name}</span>
-                <span className="text-brand-600">→</span>
-              </Link>
-            ))}
+          <div className="space-y-10">
+            {category.models.map((model) => {
+              const services = model.services.length ? model.services : category.services;
+              return (
+                <section key={model.id} id={model.slug} className="scroll-mt-24">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <span className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-brand-50">
+                        <DeviceImage
+                          slug={category.slug}
+                          icon={category.icon}
+                          imageUrl={model.imageUrl || category.imageUrl}
+                          name={model.name}
+                          className="h-full w-full"
+                          iconWrapClassName="p-2"
+                        />
+                      </span>
+                      <div>
+                        <h2 className="font-display text-xl font-800 text-ink">{model.name}</h2>
+                        <p className="text-sm text-ink/50">Reparaties voor dit model</p>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/diensten/${category.slug}/${model.slug}`}
+                      className="text-sm font-semibold text-brand-600 hover:underline"
+                    >
+                      Bekijk model →
+                    </Link>
+                  </div>
+
+                  {services.length ? (
+                    <ServiceCards category={category} model={model} services={services} />
+                  ) : (
+                    <p className="text-sm text-ink/50">Binnenkort beschikbaar voor dit model.</p>
+                  )}
+                </section>
+              );
+            })}
           </div>
         ) : category.services.length === 0 ? (
           <p className="text-sm text-ink/50">Binnenkort beschikbaar voor {category.name}.</p>
         ) : (
-          <ServiceList category={category} />
+          <ServiceCards category={category} services={category.services} />
         )}
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-xl2 border border-line bg-white p-6">

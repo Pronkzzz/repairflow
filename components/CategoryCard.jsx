@@ -1,11 +1,11 @@
 import Link from "next/link";
 import DeviceImage from "./DeviceImage";
 
-export default function CategoryCard({ category, fromPriceCents }) {
+export default function CategoryCard({ category, fromPriceCents, hrefBase = "/diensten" }) {
   const price = (fromPriceCents / 100).toFixed(0);
   return (
     <Link
-      href={`/diensten/${category.slug}`}
+      href={`${hrefBase}/${category.slug}`}
       className="card group flex flex-col items-center gap-3 p-6 text-center transition hover:-translate-y-1 hover:border-brand-400 hover:shadow-pop"
     >
       <span className="h-16 w-16 overflow-hidden rounded-2xl bg-brand-50">

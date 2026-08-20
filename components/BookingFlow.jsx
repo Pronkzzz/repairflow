@@ -77,10 +77,23 @@ export default function BookingFlow() {
     () => selectedCategory?.models?.find((m) => m.id === modelId),
     [selectedCategory, modelId]
   );
+  const availableServices = useMemo(() => {
+    if (!selectedCategory) return [];
+    if (!selectedModel) return selectedCategory.services.filter((s) => !s.modelId);
+    const specific = selectedCategory.services.filter((s) => s.modelId === selectedModel.id);
+    return specific.length ? specific : selectedCategory.services.filter((s) => !s.modelId);
+  }, [selectedCategory, selectedModel]);
+
   const selectedService = useMemo(
-    () => selectedCategory?.services.find((s) => s.id === serviceId),
-    [selectedCategory, serviceId]
+    () => availableServices.find((s) => s.id === serviceId),
+    [availableServices, serviceId]
   );
+
+  function durationText(service) {
+    return service?.durationUnit === "uur"
+      ? `±${service.durationMin / 60} uur`
+      : `±${service?.durationMin} min`;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -204,7 +217,7 @@ export default function BookingFlow() {
               <p className="mt-1 text-sm text-ink/50">{selectedCategory.name} — {selectedModel.name}</p>
             )}
             <div className="mt-5 space-y-2">
-              {selectedCategory.services.map((s) => (
+              {availableServices.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => {
@@ -215,7 +228,10 @@ export default function BookingFlow() {
                     serviceId === s.id ? "border-brand-500 bg-brand-50" : "border-line"
                   }`}
                 >
-                  <span className="font-medium text-ink">{s.name}</span>
+                  <span>
+                    <span className="font-medium text-ink">{s.name}</span>
+                    <span className="mt-1 block text-xs text-ink/40">{durationText(s)}</span>
+                  </span>
                   <span className="font-semibold text-brand-600">€{(s.priceCents / 100).toFixed(0)}</span>
                 </button>
               ))}

@@ -57,8 +57,15 @@ export async function POST(request) {
   if (modelId && typeof modelId === "string") {
     const model = await db.model.findUnique({ where: { id: modelId } });
     if (model && model.categoryId === service.categoryId) {
+      if (service.modelId && service.modelId !== model.id) {
+        return NextResponse.json({ error: "Deze reparatie hoort bij een ander model." }, { status: 400 });
+      }
       validModelId = model.id;
     }
+  }
+
+  if (service.modelId && service.modelId !== validModelId) {
+    return NextResponse.json({ error: "Kies eerst het juiste model voor deze reparatie." }, { status: 400 });
   }
 
   // --- Voorkom overboeking: check nogmaals server-side, ook al is de client al gefilterd ---

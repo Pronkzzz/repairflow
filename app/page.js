@@ -137,7 +137,7 @@ export default async function HomePage() {
 async function PricingTable() {
   let allServices = await db.service.findMany({
     where: { active: true, featured: true },
-    include: { category: true },
+    include: { category: true, model: true },
     orderBy: [{ featuredOrder: "asc" }, { priceCents: "asc" }],
     take: 8,
   });
@@ -146,7 +146,7 @@ async function PricingTable() {
   if (allServices.length === 0) {
     allServices = await db.service.findMany({
       where: { active: true },
-      include: { category: true },
+      include: { category: true, model: true },
       orderBy: { priceCents: "asc" },
       take: 8,
     });
@@ -165,7 +165,7 @@ async function PricingTable() {
       <tbody className="divide-y divide-line bg-white">
         {allServices.map((s) => (
           <tr key={s.id}>
-            <td className="px-6 py-4 font-medium text-ink">{s.category.name}</td>
+            <td className="px-6 py-4 font-medium text-ink">{s.model ? `${s.category.name} ${s.model.name}` : s.category.name}</td>
             <td className="px-6 py-4 text-ink/70">{s.name}</td>
             <td className="px-6 py-4 font-semibold text-brand-600">
               €{(s.priceCents / 100).toFixed(0)}

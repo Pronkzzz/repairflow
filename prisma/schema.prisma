@@ -31,6 +31,7 @@ model Model {
   slug        String        // bv. "iphone-13"
   order       Int           @default(0)
   imageUrl    String?
+  services    Service[]
   appointments Appointment[]
 
   @@unique([categoryId, slug])
@@ -40,9 +41,12 @@ model Service {
   id          String        @id @default(cuid())
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
+  modelId     String?
+  model       Model?        @relation(fields: [modelId], references: [id], onDelete: SetNull)
   name        String        // bv. "Scherm vervangen"
   priceCents  Int           // prijs in centen, voorkomt afrondingsfouten
   durationMin Int           @default(60)
+  durationUnit String       @default("min") // "min" of "uur"
   active      Boolean       @default(true)
   featured    Boolean       @default(false) // toont bij "Populaire reparaties" op homepage
   featuredOrder Int         @default(0)

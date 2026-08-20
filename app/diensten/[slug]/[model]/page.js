@@ -7,28 +7,48 @@ import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
+function durationText(service) {
+  return service.durationUnit === "uur"
+    ? `±${service.durationMin / 60} uur`
+    : `±${service.durationMin} min`;
+}
+
 async function getData(slug, modelSlug) {
   const category = await db.category.findUnique({
     where: { slug },
     include: {
-      services: { where: { active: true }, orderBy: { priceCents: "asc" } },
+      services: {
+        where: { active: true, modelId: null },
+        orderBy: { priceCents: "asc" },
+      },
     },
   });
   if (!category) return null;
 
   const model = await db.model.findUnique({
     where: { categoryId_slug: { categoryId: category.id, slug: modelSlug } },
+    include: {
+      services: {
+        where: { active: true },
+        orderBy: { priceCents: "asc" },
+      },
+    },
   });
   if (!model) return null;
 
-  return { category, model };
+  return {
+    category,
+    model,
+    services: model.services.length ? model.services : category.services,
+  };
 }
 
 export default async function ModelPage({ params }) {
   const { slug, model: modelSlug } = await params;
   const data = await getData(slug, modelSlug);
   if (!data) notFound();
-  const { category, model } = data;
+
+  const { category, model, services } = data;
 
   return (
     <>
@@ -58,11 +78,11 @@ export default async function ModelPage({ params }) {
       </section>
 
       <section className="container-page pb-24">
-        {category.services.length === 0 ? (
+        {services.length === 0 ? (
           <p className="text-sm text-ink/50">Binnenkort beschikbaar.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {category.services.map((s) => (
+            {services.map((s) => (
               <Link
                 key={s.id}
                 href={`/boeken?categorie=${category.slug}&model=${model.slug}&dienst=${s.id}`}
@@ -70,7 +90,7 @@ export default async function ModelPage({ params }) {
               >
                 <div>
                   <span className="font-display font-700 text-ink">{s.name}</span>
-                  <p className="mt-1 text-xs text-ink/50">±{s.durationMin} min</p>
+                  <p className="mt-1 text-xs text-ink/50">{durationText(s)}</p>
                 </div>
                 <span className="shrink-0 font-display text-lg font-800 text-brand-600">
                   €{(s.priceCents / 100).toFixed(0)}
