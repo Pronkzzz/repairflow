@@ -26,7 +26,7 @@ export default function HeroDeviceCollage({ categories }) {
   const bySlug = Object.fromEntries((categories || []).map((c) => [c.slug, c]));
   const primary = bySlug["iphone"] || categories?.[0];
   const secondary = bySlug["samsung"] || categories?.[1];
-  const tertiary = bySlug["macbook"] || bySlug["playstation"] || categories?.[2];
+  const tertiary = bySlug["playstation"] || categories?.[2];
 
   return (
     <div className="relative mx-auto aspect-[4/5] w-full max-w-sm">

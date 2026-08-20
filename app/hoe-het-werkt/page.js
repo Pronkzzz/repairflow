@@ -7,7 +7,7 @@ export const metadata = { title: "Hoe het werkt — RepairFlow" };
 const STEPS = [
   {
     title: "1. Kies je toestel en probleem",
-    desc: "Selecteer je toestel (iPhone, Samsung, MacBook, iPad, ...) en het probleem dat je hebt. Je ziet meteen de vaste prijs, geen verrassingen achteraf.",
+    desc: "Selecteer je toestel en het probleem dat je hebt. Je ziet meteen de vaste prijs, geen verrassingen achteraf.",
   },
   {
     title: "2. Kies een tijdslot dat jou past",
