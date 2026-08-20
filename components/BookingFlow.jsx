@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import DeviceImage from "./DeviceImage";
 
 const STEPS = ["Toestel", "Model", "Reparatie", "Tijdstip", "Gegevens"];
 
@@ -155,65 +156,179 @@ export default function BookingFlow() {
         ))}
       </ol>
 
-      <div className="card p-6 md:p-8">
-        {/* Stap 1: Toestel */}
-        {step === 0 && (
-          <div>
-            <h2 className="font-display text-xl font-700 text-ink">Welk toestel?</h2>
-            {loadingCategories ? (
-              <p className="mt-4 text-sm text-ink/50">Laden…</p>
-            ) : (
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setCategoryId(cat.id);
-                      setModelId(null);
-                      setServiceId(null);
-                      setStep(cat.models?.length > 0 ? 1 : 2);
-                    }}
-                    className={`rounded-xl border p-4 text-left transition hover:border-brand-400 ${
-                      categoryId === cat.id ? "border-brand-500 bg-brand-50" : "border-line"
-                    }`}
-                  >
-                    <span className="font-semibold text-ink">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+  {/* Stap 1: Toestel */}
+{step === 0 && (
+  <div>
+    <h2 className="font-display text-xl font-700 text-ink">
+      Welk toestel?
+    </h2>
 
-        {/* Stap 2: Model */}
-        {step === 1 && selectedCategory && (
-          <div>
-            <h2 className="font-display text-xl font-700 text-ink">Welk model {selectedCategory.name}?</h2>
-            <div className="mt-5 space-y-7">
-              {selectedCategory.sections?.map((section) => {
-                const sectionModels = selectedCategory.models.filter((m) => m.sectionId === section.id);
-                if (!sectionModels.length) return null;
-                return (
-                  <div key={section.id}>
-                    <h3 className="mb-3 font-display text-lg font-700 text-ink">{section.name}</h3>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {sectionModels.map((m) => <ModelButton key={m.id} model={m} selected={modelId === m.id} onSelect={() => { setModelId(m.id); setStep(2); }} />)}
-                    </div>
-                  </div>
-                );
-              })}
-              {selectedCategory.models.filter((m) => !m.sectionId).length > 0 && (
-                <div>
-                  {selectedCategory.sections?.length > 0 && <h3 className="mb-3 font-display text-lg font-700 text-ink">Overige modellen</h3>}
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {selectedCategory.models.filter((m) => !m.sectionId).map((m) => <ModelButton key={m.id} model={m} selected={modelId === m.id} onSelect={() => { setModelId(m.id); setStep(2); }} />)}
-                  </div>
-                </div>
-              )}
+    <p className="mt-1 text-sm text-ink/50">
+      Kies eerst het merk van je toestel.
+    </p>
+
+    {loadingCategories ? (
+      <p className="mt-4 text-sm text-ink/50">
+        Laden…
+      </p>
+    ) : (
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => {
+              setCategoryId(cat.id);
+              setModelId(null);
+              setServiceId(null);
+
+              setStep(
+                cat.models?.length > 0 ? 1 : 2
+              );
+            }}
+            className={`group rounded-2xl border p-5 text-center transition-all hover:-translate-y-1 hover:border-brand-400 hover:shadow-pop ${
+              categoryId === cat.id
+                ? "border-brand-500 bg-brand-50 shadow-sm"
+                : "border-line bg-white"
+            }`}
+          >
+            {/* Merk afbeelding */}
+            <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-brand-50">
+              <DeviceImage
+                slug={cat.slug}
+                icon={cat.icon}
+                imageUrl={cat.imageUrl}
+                name={cat.name}
+                className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
+              />
             </div>
-            <StepNav onBack={() => setStep(0)} />
+
+            {/* Merknaam */}
+            <div className="mt-4">
+              <span className="font-display text-base font-700 text-ink">
+                {cat.name}
+              </span>
+            </div>
+
+            <div className="mt-1 text-xs text-ink/40">
+              {cat.models?.length || 0} modellen
+            </div>
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
+
+      {/* Stap 2: Model */}
+{step === 1 && selectedCategory && (
+  <div>
+    <h2 className="font-display text-xl font-700 text-ink">
+      Welk model {selectedCategory.name}?
+    </h2>
+
+    <p className="mt-1 text-sm text-ink/50">
+      Kies het model van je {selectedCategory.name}.
+    </p>
+
+    <div className="mt-6 space-y-8">
+      {selectedCategory.sections?.map((section) => {
+        const sectionModels = selectedCategory.models.filter(
+          (m) => m.sectionId === section.id
+        );
+
+        if (!sectionModels.length) return null;
+
+        return (
+          <div key={section.id}>
+            <h3 className="mb-3 font-display text-lg font-700 text-ink">
+              {section.name}
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {sectionModels.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setModelId(m.id);
+                    setServiceId(null);
+                    setStep(2);
+                  }}
+                  className={`group rounded-2xl border p-4 text-center transition-all hover:-translate-y-1 hover:border-brand-400 hover:shadow-pop ${
+                    modelId === m.id
+                      ? "border-brand-500 bg-brand-50 shadow-sm"
+                      : "border-line bg-white"
+                  }`}
+                >
+                  <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-brand-50">
+                    <DeviceImage
+                      slug={m.slug}
+                      imageUrl={m.imageUrl}
+                      name={m.name}
+                      className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="mt-3 font-display text-sm font-700 text-ink">
+                    {m.name}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+        );
+      })}
+
+      {/* Modellen zonder sectie */}
+      {selectedCategory.models.filter((m) => !m.sectionId).length > 0 && (
+        <div>
+          {selectedCategory.sections?.length > 0 && (
+            <h3 className="mb-3 font-display text-lg font-700 text-ink">
+              Overige modellen
+            </h3>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {selectedCategory.models
+              .filter((m) => !m.sectionId)
+              .map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setModelId(m.id);
+                    setServiceId(null);
+                    setStep(2);
+                  }}
+                  className={`group rounded-2xl border p-4 text-center transition-all hover:-translate-y-1 hover:border-brand-400 hover:shadow-pop ${
+                    modelId === m.id
+                      ? "border-brand-500 bg-brand-50 shadow-sm"
+                      : "border-line bg-white"
+                  }`}
+                >
+                  <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-brand-50">
+                    <DeviceImage
+                      slug={m.slug}
+                      imageUrl={m.imageUrl}
+                      name={m.name}
+                      className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="mt-3 font-display text-sm font-700 text-ink">
+                    {m.name}
+                  </div>
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+
+    <StepNav onBack={() => setStep(0)} />
+  </div>
+)}
 
         {/* Stap 3: Dienst */}
         {step === 2 && selectedCategory && (
