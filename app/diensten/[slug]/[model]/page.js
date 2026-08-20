@@ -26,7 +26,7 @@ async function getData(slug, modelSlug) {
   if (!category) return null;
 
   const model = await db.model.findUnique({
-    where: { categoryId_slug: { categoryId: category.id, slug: modelSlug }, active: true },
+    where: { categoryId_slug: { categoryId: category.id, slug: modelSlug } },
     include: {
       services: {
         where: { active: true },

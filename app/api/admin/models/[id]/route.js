@@ -35,7 +35,6 @@ export async function PATCH(request, { params }) {
     }
   }
   if (body.order !== undefined) data.order = Number(body.order) || 0;
-  if (body.active !== undefined) data.active = Boolean(body.active);
 
   const model = await db.model.update({ where: { id }, data });
   return NextResponse.json({ model });

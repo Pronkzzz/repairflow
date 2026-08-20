@@ -6,7 +6,7 @@ export async function GET() {
     orderBy: { order: "asc" },
     include: {
       services: { where: { active: true }, orderBy: { name: "asc" } },
-      models: { where: { active: true }, orderBy: { order: "asc" }, include: { section: true } },
+      models: { orderBy: { order: "asc" }, include: { section: true } },
       sections: { orderBy: { order: "asc" } },
     },
   });

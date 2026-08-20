@@ -49,16 +49,6 @@ async function main() {
       ],
     },
     {
-      name: "MacBook",
-      slug: "macbook",
-      models: ["MacBook Air M2", "MacBook Air M1", "MacBook Pro 14\"", "MacBook Pro 16\"", "MacBook Pro (Intel)"],
-      services: [
-        { name: "Scherm vervangen", priceCents: 19900, durationMin: 90 },
-        { name: "Batterij vervangen", priceCents: 12900, durationMin: 60 },
-        { name: "Toetsenbord vervangen", priceCents: 14900, durationMin: 90 },
-      ],
-    },
-    {
       name: "iPad",
       slug: "ipad",
       models: ["iPad (10e gen)", "iPad Air", "iPad Pro 11\"", "iPad Pro 12.9\"", "iPad Mini"],
@@ -74,15 +64,6 @@ async function main() {
       services: [
         { name: "Scherm vervangen", priceCents: 8900, durationMin: 45 },
         { name: "Batterij vervangen", priceCents: 6900, durationMin: 45 },
-      ],
-    },
-    {
-      name: "iMac",
-      slug: "imac",
-      models: ["iMac 24\" M3", "iMac 24\" M1", "iMac 21.5\" (Intel)"],
-      services: [
-        { name: "Scherm vervangen", priceCents: 24900, durationMin: 90 },
-        { name: "SSD/opslag vervangen", priceCents: 14900, durationMin: 60 },
       ],
     },
     {

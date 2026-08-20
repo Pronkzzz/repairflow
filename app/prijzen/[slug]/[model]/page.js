@@ -28,7 +28,7 @@ export default async function PriceModelPage({ params }) {
   if (!category) notFound();
 
   const model = await db.model.findUnique({
-    where: { categoryId_slug: { categoryId: category.id, slug: modelSlug }, active: true },
+    where: { categoryId_slug: { categoryId: category.id, slug: modelSlug } },
     include: {
       services: {
         where: { active: true },
