@@ -3,10 +3,11 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   const categories = await db.category.findMany({
+    where: { active: true },
     orderBy: { order: "asc" },
     include: {
       services: { where: { active: true }, orderBy: { name: "asc" } },
-      models: { orderBy: { order: "asc" }, include: { section: true } },
+      models: { where: { active: true }, orderBy: { order: "asc" }, include: { section: true } },
       sections: { orderBy: { order: "asc" } },
     },
   });

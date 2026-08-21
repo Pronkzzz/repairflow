@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import StatusSelect from "@/components/admin/StatusSelect";
+import AppointmentEditor from "@/components/admin/AppointmentEditor";
 
 export const revalidate = 0;
 
@@ -83,7 +84,9 @@ export default async function AdminDashboard({ searchParams }) {
                 <td className="px-5 py-4 text-ink/70">
                   {a.service.category.name} — {a.service.name}
                 </td>
-                <td className="px-5 py-4 text-ink/70">{a.date} · {a.timeSlot}</td>
+                <td className="px-5 py-4 text-ink/70">{a.date} · {a.timeSlot}
+                  <AppointmentEditor appointment={a} />
+                </td>
                 <td className="px-5 py-4 font-medium text-ink">
                   €{(a.service.priceCents / 100).toFixed(0)}
                 </td>

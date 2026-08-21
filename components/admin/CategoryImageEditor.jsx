@@ -10,13 +10,14 @@ export default function CategoryImageEditor({ category }) {
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState(category.imageUrl || "");
   const [icon, setIcon] = useState(category.icon || "");
+  const [active, setActive] = useState(category.active !== false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   async function save(overrides = {}) {
     setSaving(true);
     setSaved(false);
-    const payload = { imageUrl, icon: icon || null, ...overrides };
+    const payload = { imageUrl, icon: icon || null, active, ...overrides };
     const res = await fetch(`/api/admin/categories/${category.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -79,6 +80,18 @@ export default function CategoryImageEditor({ category }) {
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="flex items-center gap-1.5 text-xs font-medium text-ink/60">
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={(e) => {
+              setActive(e.target.checked);
+              save({ active: e.target.checked });
+            }}
+          />
+          Merk actief op site
         </label>
 
         {saving && <span className="text-xs text-ink/40">opslaan…</span>}

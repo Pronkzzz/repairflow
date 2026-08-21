@@ -9,6 +9,7 @@ export const metadata = { title: "Prijzen — RepairFlow" };
 
 async function getCategories() {
   const categories = await db.category.findMany({
+    where: { active: true },
     orderBy: { order: "asc" },
     include: {
       services: {

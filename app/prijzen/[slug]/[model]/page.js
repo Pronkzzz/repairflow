@@ -17,7 +17,7 @@ export default async function PriceModelPage({ params }) {
   const { slug, model: modelSlug } = await params;
 
   const category = await db.category.findUnique({
-    where: { slug },
+    where: { slug, active: true },
     include: {
       services: {
         where: { active: true, modelId: null },
@@ -36,7 +36,7 @@ export default async function PriceModelPage({ params }) {
       },
     },
   });
-  if (!model) notFound();
+  if (!model || !model.active) notFound();
 
   const services = model.services.length ? model.services : category.services;
 

@@ -15,7 +15,7 @@ function durationText(service) {
 
 async function getData(slug, modelSlug) {
   const category = await db.category.findUnique({
-    where: { slug },
+    where: { slug, active: true },
     include: {
       services: {
         where: { active: true, modelId: null },
@@ -34,7 +34,7 @@ async function getData(slug, modelSlug) {
       },
     },
   });
-  if (!model) return null;
+  if (!model || !model.active) return null;
 
   return {
     category,

@@ -276,6 +276,21 @@ function ModelRow({ model, sections, onDelete, onSaved, draggable, onDragStart }
       />
       <ImageUploadButton onUploaded={(url) => { setImageUrl(url); saveImage(url); }} />
       {savingImage && <span className="text-xs text-ink/40">opslaan…</span>}
+      <label className="flex items-center gap-1.5 text-xs text-ink/60">
+        <input
+          type="checkbox"
+          checked={model.active !== false}
+          onChange={async (e) => {
+            await fetch(`/api/admin/models/${model.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ active: e.target.checked }),
+            });
+            onSaved();
+          }}
+        />
+        Actief op site
+      </label>
       <button onClick={onDelete} className="text-sm font-medium text-rose hover:underline">Verwijderen</button>
     </div>
   );

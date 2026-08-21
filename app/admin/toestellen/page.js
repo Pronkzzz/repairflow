@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import CategoryImageEditor from "@/components/admin/CategoryImageEditor";
 import ModelManager from "@/components/admin/ModelManager";
+import CategoryManager from "@/components/admin/CategoryManager";
 
 export const revalidate = 0;
 
@@ -20,6 +21,8 @@ export default async function AdminDevicesPage() {
         Maak per merk eigen secties, bijvoorbeeld <strong>Galaxy A</strong>, <strong>Galaxy S</strong> en
         <strong> Galaxy Z</strong>. Sleep modellen daarna naar de juiste sectie. Dit werkt voor ieder merk.
       </p>
+
+      <CategoryManager />
 
       <div className="mt-8 space-y-10">
         {categories.map((cat) => (

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { generateDaySlots, isSunday, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
+import { getSlotsForDate, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
 import { rateLimit } from "@/lib/rateLimit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,10 +32,8 @@ export async function POST(request) {
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return NextResponse.json({ error: "Kies een geldige datum." }, { status: 400 });
   }
-  if (isSunday(date)) {
-    return NextResponse.json({ error: "We zijn zondag gesloten." }, { status: 400 });
-  }
-  if (!timeSlot || !generateDaySlots().includes(timeSlot)) {
+  const validSlots = await getSlotsForDate(date);
+  if (!timeSlot || !validSlots.includes(timeSlot)) {
     return NextResponse.json({ error: "Kies een geldig tijdslot." }, { status: 400 });
   }
   if (!customerName || customerName.trim().length < 2) {
@@ -48,15 +46,15 @@ export async function POST(request) {
     return NextResponse.json({ error: "Vul een geldig telefoonnummer in." }, { status: 400 });
   }
 
-  const service = await db.service.findUnique({ where: { id: serviceId } });
-  if (!service || !service.active) {
+  const service = await db.service.findUnique({ where: { id: serviceId }, include: { category: true } });
+  if (!service || !service.active || !service.category.active) {
     return NextResponse.json({ error: "Deze dienst bestaat niet (meer)." }, { status: 400 });
   }
 
   let validModelId = null;
   if (modelId && typeof modelId === "string") {
     const model = await db.model.findUnique({ where: { id: modelId } });
-    if (model && model.categoryId === service.categoryId) {
+    if (model && model.active && model.categoryId === service.categoryId) {
       if (service.modelId && service.modelId !== model.id) {
         return NextResponse.json({ error: "Deze reparatie hoort bij een ander model." }, { status: 400 });
       }

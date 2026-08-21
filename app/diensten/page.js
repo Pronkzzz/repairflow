@@ -8,6 +8,7 @@ export const metadata = { title: "Reparaties — RepairFlow" };
 
 async function getCategoriesWithFromPrice() {
   const categories = await db.category.findMany({
+    where: { active: true },
     orderBy: { order: "asc" },
     include: { services: { where: { active: true }, orderBy: { priceCents: "asc" }, take: 1 } },
   });

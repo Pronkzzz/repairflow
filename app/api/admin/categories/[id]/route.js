@@ -18,6 +18,14 @@ export async function PATCH(request, { params }) {
   if (body.icon !== undefined) {
     data.icon = body.icon ? String(body.icon).trim().slice(0, 60) : null;
   }
+  if (body.active !== undefined) {
+    data.active = Boolean(body.active);
+  }
+  if (body.name !== undefined) {
+    const name = String(body.name).trim();
+    if (!name) return NextResponse.json({ error: "Merknaam mag niet leeg zijn." }, { status: 400 });
+    data.name = name;
+  }
 
   const category = await db.category.update({ where: { id }, data });
   return NextResponse.json({ category });
