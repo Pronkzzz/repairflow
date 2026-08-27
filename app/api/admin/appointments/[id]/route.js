@@ -35,13 +35,28 @@ export async function PATCH(request, { params }) {
 
     // Stuur bevestigingsmail + sms alleen bij de overgang náár "confirmed",
     // niet elke keer dat de status wordt opgeslagen.
+    //
+    // BELANGRIJK: dit moet AWAITED worden. Op Vercel (serverless) wordt de
+    // function bevroren zodra de response is teruggestuurd — een "fire and
+    // forget" call hierboven (zonder await) wordt dan vaak halverwege
+    // afgebroken vóórdat de fetch naar Resend/Twilio klaar is, waardoor de
+    // mail geruisloos verdwijnt zonder foutmelding.
+    let notifyResult = null;
     if (body.status === "confirmed" && before.status !== "confirmed") {
-      sendConfirmationNotifications(appointment).catch((err) =>
-        console.error("[appointments] Bevestigingsberichten versturen is mislukt:", err)
-      );
+      try {
+        notifyResult = await sendConfirmationNotifications(appointment);
+        const emailOutcome = notifyResult?.emailResult;
+        if (emailOutcome?.status === "rejected") {
+          console.error("[appointments] Bevestigingsmail versturen is mislukt:", emailOutcome.reason);
+        } else if (emailOutcome?.value?.ok === false) {
+          console.error("[appointments] Resend gaf aan dat de mail niet verzonden kon worden.");
+        }
+      } catch (err) {
+        console.error("[appointments] Bevestigingsberichten versturen is mislukt:", err);
+      }
     }
 
-    return NextResponse.json({ appointment });
+    return NextResponse.json({ appointment, notify: notifyResult });
   }
 
   if (body.date !== undefined || body.timeSlot !== undefined) {
