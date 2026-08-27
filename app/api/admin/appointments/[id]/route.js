@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getSlotsForDate, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
-import { sendConfirmationNotifications } from "@/lib/notify";
+import {
+  sendConfirmationNotifications,
+  sendCancellationNotifications,
+  sendRescheduleNotifications,
+} from "@/lib/notify";
 
 const VALID_STATUSES = ["pending", "confirmed", "done", "cancelled"];
 // Alleen afspraken die al achter de rug zijn (afgerond of geannuleerd)
@@ -42,18 +46,20 @@ export async function PATCH(request, { params }) {
     // afgebroken vóórdat de fetch naar Resend/Twilio klaar is, waardoor de
     // mail geruisloos verdwijnt zonder foutmelding.
     let notifyResult = null;
-    if (body.status === "confirmed" && before.status !== "confirmed") {
-      try {
+    try {
+      if (body.status === "confirmed" && before.status !== "confirmed") {
         notifyResult = await sendConfirmationNotifications(appointment);
-        const emailOutcome = notifyResult?.emailResult;
-        if (emailOutcome?.status === "rejected") {
-          console.error("[appointments] Bevestigingsmail versturen is mislukt:", emailOutcome.reason);
-        } else if (emailOutcome?.value?.ok === false) {
-          console.error("[appointments] Resend gaf aan dat de mail niet verzonden kon worden.");
-        }
-      } catch (err) {
-        console.error("[appointments] Bevestigingsberichten versturen is mislukt:", err);
+      } else if (body.status === "cancelled" && before.status !== "cancelled") {
+        notifyResult = await sendCancellationNotifications(appointment);
       }
+      const emailOutcome = notifyResult?.emailResult;
+      if (emailOutcome?.status === "rejected") {
+        console.error("[appointments] Mail versturen is mislukt:", emailOutcome.reason);
+      } else if (emailOutcome?.value?.ok === false) {
+        console.error("[appointments] Resend gaf aan dat de mail niet verzonden kon worden.");
+      }
+    } catch (err) {
+      console.error("[appointments] Berichten versturen is mislukt:", err);
     }
 
     return NextResponse.json({ appointment, notify: notifyResult });
@@ -71,7 +77,8 @@ export async function PATCH(request, { params }) {
     if (!validSlots.includes(timeSlot)) {
       return NextResponse.json({ error: "Dit tijdstip valt buiten de ingestelde openingstijden." }, { status: 400 });
     }
-    if (date !== current.date || timeSlot !== current.timeSlot) {
+    const dateChanged = date !== current.date || timeSlot !== current.timeSlot;
+    if (dateChanged) {
       const bookedCount = await db.appointment.count({
         where: { id: { not: id }, date, timeSlot, status: { not: "cancelled" } },
       });
@@ -79,8 +86,35 @@ export async function PATCH(request, { params }) {
         return NextResponse.json({ error: "Dit tijdslot is vol." }, { status: 409 });
       }
     }
-    const appointment = await db.appointment.update({ where: { id }, data: { date, timeSlot } });
-    return NextResponse.json({ appointment });
+
+    const appointment = await db.appointment.update({
+      where: { id },
+      data: { date, timeSlot },
+      include: { service: true, model: true },
+    });
+
+    // Alleen een "je afspraak is verzet"-mail sturen als de afspraak al
+    // bevestigd was en de datum/tijd ook echt gewijzigd is — anders krijgt
+    // de klant een mail terwijl er in de praktijk niets veranderd is.
+    let notifyResult = null;
+    if (dateChanged && current.status === "confirmed") {
+      try {
+        notifyResult = await sendRescheduleNotifications(appointment, {
+          oldDate: current.date,
+          oldTimeSlot: current.timeSlot,
+        });
+        const emailOutcome = notifyResult?.emailResult;
+        if (emailOutcome?.status === "rejected") {
+          console.error("[appointments] Verzet-mail versturen is mislukt:", emailOutcome.reason);
+        } else if (emailOutcome?.value?.ok === false) {
+          console.error("[appointments] Resend gaf aan dat de verzet-mail niet verzonden kon worden.");
+        }
+      } catch (err) {
+        console.error("[appointments] Verzet-berichten versturen is mislukt:", err);
+      }
+    }
+
+    return NextResponse.json({ appointment, notify: notifyResult });
   }
 
   return NextResponse.json({ error: "Geen wijzigingen opgegeven." }, { status: 400 });

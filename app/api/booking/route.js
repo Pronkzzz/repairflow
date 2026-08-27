@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSlotsForDate, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendAdminNewBookingEmail } from "@/lib/notify";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -88,7 +89,18 @@ export async function POST(request) {
       phone: phone.trim(),
       notes: notes?.trim()?.slice(0, 500) || null,
     },
+    include: { service: true, model: true },
   });
+
+  // Admin op de hoogte brengen van de nieuwe boeking. Wordt awaited zodat
+  // Vercel de function niet bevriest voordat de mail écht verstuurd is —
+  // maar een fout hier mag de boeking zelf nooit laten mislukken voor de
+  // klant, dus we vangen 'm hier af in plaats van door te gooien.
+  try {
+    await sendAdminNewBookingEmail(appointment);
+  } catch (err) {
+    console.error("[booking] Admin-melding versturen is mislukt:", err);
+  }
 
   return NextResponse.json({ id: appointment.id }, { status: 201 });
 }
