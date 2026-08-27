@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import StatusSelect from "@/components/admin/StatusSelect";
 import AppointmentEditor from "@/components/admin/AppointmentEditor";
+import DeleteAppointmentButton from "@/components/admin/DeleteAppointmentButton";
 
 export const revalidate = 0;
 
@@ -14,7 +15,10 @@ const STATUS_TABS = [
 ];
 
 export default async function AdminDashboard({ searchParams }) {
-  const statusFilter = searchParams?.status || "";
+  // In Next.js 16 is searchParams een Promise en moet die eerst awaited worden,
+  // anders is statusFilter altijd leeg en lijkt de filter niet te werken.
+  const params = await searchParams;
+  const statusFilter = params?.status || "";
 
   const appointments = await db.appointment.findMany({
     where: statusFilter ? { status: statusFilter } : {},
@@ -92,6 +96,9 @@ export default async function AdminDashboard({ searchParams }) {
                 </td>
                 <td className="px-5 py-4">
                   <StatusSelect appointmentId={a.id} status={a.status} />
+                  {(a.status === "done" || a.status === "cancelled") && (
+                    <DeleteAppointmentButton appointmentId={a.id} />
+                  )}
                 </td>
               </tr>
             ))}

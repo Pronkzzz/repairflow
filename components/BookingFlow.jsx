@@ -258,12 +258,23 @@ export default function BookingFlow() {
   if (confirmationId) {
     return (
       <div className="card mx-auto max-w-lg p-10 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/10 text-2xl">
-          ✅
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-7 w-7 text-mint"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
         </div>
 
         <h2 className="mt-4 font-display text-2xl font-700 text-ink">
-          Afspraak bevestigd!
+          Afspraak ontvangen!
         </h2>
 
         <p className="mt-2 text-ink/60">
@@ -271,8 +282,10 @@ export default function BookingFlow() {
             ? `${selectedModel.name} — `
             : ""}
           {selectedService?.name} — {date} om{" "}
-          {timeSlot}. We sturen een bevestiging naar
-          je e-mail.
+          {timeSlot}. Je afspraak is aangevraagd en
+          moet nog bevestigd worden door ons team. Zodra
+          dat gebeurt, ontvang je een bevestiging per
+          e-mail en sms.
         </p>
 
         <p className="mt-1 text-xs text-ink/40">

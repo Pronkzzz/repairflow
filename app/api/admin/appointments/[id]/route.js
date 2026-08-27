@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getSlotsForDate, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
+import { sendConfirmationNotifications } from "@/lib/notify";
 
 const VALID_STATUSES = ["pending", "confirmed", "done", "cancelled"];
+// Alleen afspraken die al achter de rug zijn (afgerond of geannuleerd)
+// mogen verwijderd worden — actieve afspraken blijven staan.
+const DELETABLE_STATUSES = ["done", "cancelled"];
 
 export async function PATCH(request, { params }) {
   // Extra check bovenop de middleware: nooit alleen op middleware vertrouwen voor API routes
@@ -19,7 +23,24 @@ export async function PATCH(request, { params }) {
     if (!VALID_STATUSES.includes(body.status)) {
       return NextResponse.json({ error: "Ongeldige status." }, { status: 400 });
     }
-    const appointment = await db.appointment.update({ where: { id }, data: { status: body.status } });
+
+    const before = await db.appointment.findUnique({ where: { id } });
+    if (!before) return NextResponse.json({ error: "Afspraak niet gevonden." }, { status: 404 });
+
+    const appointment = await db.appointment.update({
+      where: { id },
+      data: { status: body.status },
+      include: { service: true, model: true },
+    });
+
+    // Stuur bevestigingsmail + sms alleen bij de overgang náár "confirmed",
+    // niet elke keer dat de status wordt opgeslagen.
+    if (body.status === "confirmed" && before.status !== "confirmed") {
+      sendConfirmationNotifications(appointment).catch((err) =>
+        console.error("[appointments] Bevestigingsberichten versturen is mislukt:", err)
+      );
+    }
+
     return NextResponse.json({ appointment });
   }
 
@@ -48,4 +69,27 @@ export async function PATCH(request, { params }) {
   }
 
   return NextResponse.json({ error: "Geen wijzigingen opgegeven." }, { status: 400 });
+}
+
+export async function DELETE(request, { params }) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const appointment = await db.appointment.findUnique({ where: { id } });
+  if (!appointment) {
+    return NextResponse.json({ error: "Afspraak niet gevonden." }, { status: 404 });
+  }
+
+  if (!DELETABLE_STATUSES.includes(appointment.status)) {
+    return NextResponse.json(
+      { error: "Alleen afgeronde of geannuleerde afspraken kunnen verwijderd worden." },
+      { status: 400 }
+    );
+  }
+
+  await db.appointment.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }
