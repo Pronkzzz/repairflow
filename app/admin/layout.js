@@ -1,7 +1,18 @@
 import Link from "next/link";
 import LogoutButton from "@/components/admin/LogoutButton";
+import { getCurrentAdmin } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
-export default function AdminLayout({ children }) {
+const NAV_ITEMS = [
+  { href: "/admin/dashboard", label: "Afspraken", permission: "appointments" },
+  { href: "/admin/diensten", label: "Diensten & prijzen", permission: "pricing" },
+  { href: "/admin/toestellen", label: "Merken & modellen", permission: "models" },
+  { href: "/admin/instellingen", label: "Afspraakinstellingen", permission: "settings" },
+];
+
+export default async function AdminLayout({ children }) {
+  const admin = await getCurrentAdmin();
+
   return (
     <div className="min-h-screen bg-paper">
       <div className="flex">
@@ -11,20 +22,28 @@ export default function AdminLayout({ children }) {
             Admin
           </div>
           <nav className="flex flex-col gap-1 p-4 text-sm font-medium text-ink/70">
-            <Link href="/admin/dashboard" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
-              Afspraken
-            </Link>
-            <Link href="/admin/diensten" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
-              Diensten & prijzen
-            </Link>
-            <Link href="/admin/toestellen" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
-              Merken & modellen
-            </Link>
-            <Link href="/admin/instellingen" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
-              Afspraakinstellingen
-            </Link>
+            {NAV_ITEMS.filter((item) => hasPermission(admin, item.permission)).map((item) => (
+              <Link key={item.href} href={item.href} className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
+                {item.label}
+              </Link>
+            ))}
+
+            {admin?.role === "owner" && (
+              <>
+                <div className="mt-3 mb-1 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink/30">
+                  Eigenaar
+                </div>
+                <Link href="/admin/team" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
+                  Team
+                </Link>
+                <Link href="/admin/onderhoud" className="rounded-lg px-3 py-2 hover:bg-paper hover:text-ink">
+                  Onderhoudsmodus
+                </Link>
+              </>
+            )}
           </nav>
           <div className="p-4">
+            {admin && <div className="mb-3 truncate text-xs text-ink/40">{admin.email}</div>}
             <LogoutButton />
           </div>
         </aside>

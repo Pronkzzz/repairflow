@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/apiAuth";
 import { DEFAULT_HOURS, normalizeHours } from "@/lib/slots";
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  const gate = await requirePermission("settings");
+  if (gate.error) return gate.error;
   const setting = await db.businessHours.findUnique({ where: { id: "default" } });
   return NextResponse.json({ hours: normalizeHours(setting?.hours || DEFAULT_HOURS) });
 }
 
 export async function PUT(request) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  const gate = await requirePermission("settings");
+  if (gate.error) return gate.error;
   const body = await request.json().catch(() => ({}));
   const hours = normalizeHours(body.hours || {});
   for (const value of Object.values(hours)) {

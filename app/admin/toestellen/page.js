@@ -2,10 +2,16 @@ import { db } from "@/lib/db";
 import CategoryImageEditor from "@/components/admin/CategoryImageEditor";
 import ModelManager from "@/components/admin/ModelManager";
 import CategoryManager from "@/components/admin/CategoryManager";
+import NoAccess from "@/components/admin/NoAccess";
+import { getCurrentAdmin } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
 export const revalidate = 0;
 
 export default async function AdminDevicesPage() {
+  const admin = await getCurrentAdmin();
+  if (!hasPermission(admin, "models")) return <NoAccess />;
+
   const categories = await db.category.findMany({
     orderBy: { order: "asc" },
     include: {

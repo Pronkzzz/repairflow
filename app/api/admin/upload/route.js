@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { getSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/apiAuth";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/webp", "image/png", "image/jpeg", "image/jpg", "image/gif", "image/svg+xml"];
 
 export async function POST(request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
-  }
+  const gate = await requirePermission("models");
+  if (gate.error) return gate.error;
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json(

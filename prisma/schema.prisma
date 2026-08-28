@@ -95,7 +95,18 @@ model BusinessHours {
 }
 
 model Admin {
-  id           String @id @default(cuid())
-  email        String @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String
+  role         String   @default("staff") // "owner" (alles) | "staff" (beperkt door permissions)
+  permissions  Json     @default("{}")    // bv. { "appointments": true, "pricing": false, ... } — genegeerd voor "owner"
+  createdAt    DateTime @default(now())
+}
+
+model SiteSettings {
+  id                 String    @id @default("default")
+  maintenanceMode    Boolean   @default(false)
+  maintenanceUntil   DateTime?
+  maintenanceMessage String?
+  updatedAt          DateTime  @updatedAt
 }

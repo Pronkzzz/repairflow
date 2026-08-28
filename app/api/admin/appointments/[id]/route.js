@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/apiAuth";
 import { getSlotsForDate, MAX_BOOKINGS_PER_SLOT } from "@/lib/slots";
 import {
   sendConfirmationNotifications,
@@ -14,11 +14,9 @@ const VALID_STATUSES = ["pending", "confirmed", "done", "cancelled"];
 const DELETABLE_STATUSES = ["done", "cancelled"];
 
 export async function PATCH(request, { params }) {
-  // Extra check bovenop de middleware: nooit alleen op middleware vertrouwen voor API routes
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
-  }
+  // Extra check bovenop de layout/nav: nooit alleen op verborgen tabs vertrouwen voor API routes
+  const gate = await requirePermission("appointments");
+  if (gate.error) return gate.error;
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
@@ -121,10 +119,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
-  }
+  const gate = await requirePermission("appointments");
+  if (gate.error) return gate.error;
 
   const { id } = await params;
   const appointment = await db.appointment.findUnique({ where: { id } });

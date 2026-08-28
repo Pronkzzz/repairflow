@@ -3,6 +3,9 @@ import { db } from "@/lib/db";
 import StatusSelect from "@/components/admin/StatusSelect";
 import AppointmentEditor from "@/components/admin/AppointmentEditor";
 import DeleteAppointmentButton from "@/components/admin/DeleteAppointmentButton";
+import NoAccess from "@/components/admin/NoAccess";
+import { getCurrentAdmin } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
 export const revalidate = 0;
 
@@ -15,6 +18,9 @@ const STATUS_TABS = [
 ];
 
 export default async function AdminDashboard({ searchParams }) {
+  const admin = await getCurrentAdmin();
+  if (!hasPermission(admin, "appointments")) return <NoAccess />;
+
   // In Next.js 16 is searchParams een Promise en moet die eerst awaited worden,
   // anders is statusFilter altijd leeg en lijkt de filter niet te werken.
   const params = await searchParams;

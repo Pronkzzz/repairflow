@@ -285,7 +285,7 @@ export default function BookingFlow() {
           {timeSlot}. Je afspraak is aangevraagd en
           moet nog bevestigd worden door ons team. Zodra
           dat gebeurt, ontvang je een bevestiging per
-          e-mail.
+          e-mail en sms.
         </p>
 
         <p className="mt-1 text-xs text-ink/40">

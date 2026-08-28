@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/apiAuth";
 
 export async function PATCH(request, { params }) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  const gate = await requirePermission("models");
+  if (gate.error) return gate.error;
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
@@ -24,8 +24,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
+  const gate = await requirePermission("models");
+  if (gate.error) return gate.error;
   const { id } = await params;
   await db.modelSection.delete({ where: { id } });
   return NextResponse.json({ ok: true });

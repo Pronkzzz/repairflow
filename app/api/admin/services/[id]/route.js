@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/apiAuth";
 
 function toDurationMin(value, unit) {
   const n = Number(value);
@@ -9,10 +9,8 @@ function toDurationMin(value, unit) {
 }
 
 export async function PATCH(request, { params }) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
-  }
+  const gate = await requirePermission("pricing");
+  if (gate.error) return gate.error;
 
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
@@ -54,10 +52,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Niet ingelogd." }, { status: 401 });
-  }
+  const gate = await requirePermission("pricing");
+  if (gate.error) return gate.error;
 
   const { id } = await params;
   await db.service.delete({ where: { id } });

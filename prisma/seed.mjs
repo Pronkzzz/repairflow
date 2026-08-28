@@ -21,7 +21,12 @@ async function main() {
   await prisma.admin.upsert({
     where: { email: adminEmail },
     update: { passwordHash },
-    create: { email: adminEmail, passwordHash },
+    create: {
+      email: adminEmail,
+      passwordHash,
+      role: "owner",
+      permissions: { appointments: true, pricing: true, models: true, settings: true },
+    },
   });
   console.log(`Admin klaar: ${adminEmail} / wachtwoord: ${adminPassword}`);
 
