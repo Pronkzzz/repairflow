@@ -26,7 +26,10 @@ export default async function PriceBrandPage({ params }) {
   const { slug } = await params;
   const category = await db.category.findUnique({
     where: { slug },
-    include: { models: { orderBy: { order: "asc" } } },
+    include: {
+      models: { orderBy: { order: "asc" } },
+      sections: { orderBy: { order: "asc" } },
+    },
   });
 
   if (!category) notFound();
