@@ -13,7 +13,7 @@ export async function POST(request) {
   if (gate.error) return gate.error;
 
   const body = await request.json().catch(() => ({}));
-  const { categoryId, modelId, name, priceCents, durationValue, durationUnit } = body || {};
+  const { categoryId, modelId, modelIds, name, priceCents, durationValue, durationUnit } = body || {};
 
   if (!categoryId || typeof categoryId !== "string") {
     return NextResponse.json({ error: "Kies een merk." }, { status: 400 });
@@ -36,6 +36,38 @@ export async function POST(request) {
   const category = await db.category.findUnique({ where: { id: categoryId } });
   if (!category) {
     return NextResponse.json({ error: "Merk niet gevonden." }, { status: 400 });
+  }
+
+  // Meerdere modellen tegelijk selecteren: modelIds is een array met 1 of meer
+  // model-id's. Voor elk model wordt een aparte reparatie/prijs aangemaakt
+  // (zelfde naam, prijs en duur), zodat je niet steeds hetzelfde opnieuw
+  // hoeft te maken.
+  const idList = Array.isArray(modelIds)
+    ? [...new Set(modelIds.map((id) => String(id)).filter(Boolean))]
+    : [];
+
+  if (idList.length > 0) {
+    const models = await db.model.findMany({ where: { id: { in: idList } } });
+    if (models.length !== idList.length || models.some((m) => m.categoryId !== categoryId)) {
+      return NextResponse.json({ error: "Eén of meer modellen horen niet bij dit merk." }, { status: 400 });
+    }
+
+    const services = await db.$transaction(
+      idList.map((id) =>
+        db.service.create({
+          data: {
+            categoryId,
+            modelId: id,
+            name: name.trim(),
+            priceCents: Math.round(price),
+            durationMin,
+            durationUnit: unit,
+          },
+        })
+      )
+    );
+
+    return NextResponse.json({ services }, { status: 201 });
   }
 
   if (modelId) {
