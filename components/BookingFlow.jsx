@@ -22,7 +22,7 @@ export default function BookingFlow() {
   const [categoryId, setCategoryId] = useState(null);
   const [modelId, setModelId] = useState(null);
 
-  const [serviceId, setServiceId] = useState(null);
+  const [serviceIds, setServiceIds] = useState([]);
 
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState([]);
@@ -85,13 +85,13 @@ export default function BookingFlow() {
            * We zetten alleen merk + model klaar.
            * De gebruiker moet vervolgens zelf de reparatie kiezen.
            */
-          setServiceId(null);
+          setServiceIds([]);
           setStep(2);
         } else {
           /*
            * Wel merk bekend, maar nog geen model.
            */
-          setServiceId(null);
+          setServiceIds([]);
 
           if (preselect.models?.length > 0) {
             setStep(1);
@@ -185,14 +185,41 @@ export default function BookingFlow() {
   }, [selectedCategory, selectedModel]);
 
   /*
-   * Geselecteerde reparatie.
+   * Geselecteerde reparatie(s).
+   *
+   * De klant kan meerdere problemen/reparaties
+   * tegelijk selecteren voordat er verder gegaan
+   * wordt naar de datum/tijd-stap.
    */
-  const selectedService = useMemo(
+  const selectedServices = useMemo(
     () =>
-      availableServices.find(
-        (s) => s.id === serviceId
+      availableServices.filter((s) =>
+        serviceIds.includes(s.id)
       ),
-    [availableServices, serviceId]
+    [availableServices, serviceIds]
+  );
+
+  /*
+   * Schakel een reparatie aan/uit in de selectie.
+   */
+  function toggleService(id) {
+    setServiceIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((sid) => sid !== id)
+        : [...prev, id]
+    );
+  }
+
+  /*
+   * Totaalprijs van alle geselecteerde reparaties.
+   */
+  const totalPriceCents = useMemo(
+    () =>
+      selectedServices.reduce(
+        (sum, s) => sum + s.priceCents,
+        0
+      ),
+    [selectedServices]
   );
 
   /*
@@ -224,7 +251,7 @@ export default function BookingFlow() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          serviceId,
+          serviceIds,
           modelId,
           date,
           timeSlot,
@@ -242,7 +269,9 @@ export default function BookingFlow() {
         return;
       }
 
-      setConfirmationId(data.id);
+      setConfirmationId(
+        data.ids ? data.ids.join(", ") : data.id
+      );
     } catch {
       setError(
         "Kon geen verbinding maken. Controleer je internet en probeer opnieuw."
@@ -281,15 +310,21 @@ export default function BookingFlow() {
           {selectedModel
             ? `${selectedModel.name} — `
             : ""}
-          {selectedService?.name} — {date} om{" "}
-          {timeSlot}. Je afspraak is aangevraagd en
+          {selectedServices
+            .map((s) => s.name)
+            .join(", ")}{" "}
+          — {date} om {timeSlot}. Je afspraak is
+          aangevraagd en
           moet nog bevestigd worden door ons team. Zodra
           dat gebeurt, ontvang je een bevestiging per
           e-mail en sms.
         </p>
 
         <p className="mt-1 text-xs text-ink/40">
-          Referentie: {confirmationId}
+          {confirmationId.includes(",")
+            ? "Referenties"
+            : "Referentie"}
+          : {confirmationId}
         </p>
 
         <button
@@ -367,7 +402,7 @@ export default function BookingFlow() {
                   onClick={() => {
                     setCategoryId(cat.id);
                     setModelId(null);
-                    setServiceId(null);
+                    setServiceIds([]);
                     setTimeSlot(null);
 
                     if (
@@ -453,7 +488,7 @@ export default function BookingFlow() {
                           type="button"
                           onClick={() => {
                             setModelId(m.id);
-                            setServiceId(null);
+                            setServiceIds([]);
                             setTimeSlot(null);
                             setStep(2);
                           }}
@@ -505,7 +540,7 @@ export default function BookingFlow() {
                         type="button"
                         onClick={() => {
                           setModelId(m.id);
-                          setServiceId(null);
+                          setServiceIds([]);
                           setTimeSlot(null);
                           setStep(2);
                         }}
@@ -552,8 +587,8 @@ export default function BookingFlow() {
           </h2>
 
           <p className="mt-1 text-sm text-ink/50">
-            Kies de reparatie voor je{" "}
-            {selectedModel.name}.
+            Kies één of meerdere reparaties voor
+            je {selectedModel.name}.
           </p>
 
           {availableServices.length === 0 ? (
@@ -563,44 +598,77 @@ export default function BookingFlow() {
             </div>
           ) : (
             <div className="mt-5 space-y-3">
-              {availableServices.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => {
-                    setServiceId(s.id);
-                    setTimeSlot(null);
-                    setStep(3);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition hover:border-brand-400 ${
-                    serviceId === s.id
-                      ? "border-brand-500 bg-brand-50"
-                      : "border-line bg-white"
-                  }`}
-                >
-                  <div>
-                    <div className="font-semibold text-ink">
-                      {s.name}
+              {availableServices.map((s) => {
+                const checked = serviceIds.includes(
+                  s.id
+                );
+
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => toggleService(s.id)}
+                    aria-pressed={checked}
+                    className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition hover:border-brand-400 ${
+                      checked
+                        ? "border-brand-500 bg-brand-50"
+                        : "border-line bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                          checked
+                            ? "border-brand-500 bg-brand-500 text-white"
+                            : "border-line bg-white"
+                        }`}
+                      >
+                        {checked && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-3.5 w-3.5"
+                          >
+                            <path d="M20 6 9 17l-5-5" />
+                          </svg>
+                        )}
+                      </span>
+
+                      <div>
+                        <div className="font-semibold text-ink">
+                          {s.name}
+                        </div>
+
+                        <div className="mt-1 text-xs text-ink/50">
+                          {durationText(s)}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-1 text-xs text-ink/50">
-                      {durationText(s)}
-                    </div>
-                  </div>
-
-                  <span className="font-semibold text-brand-600">
-                    €
-                    {(
-                      s.priceCents / 100
-                    ).toFixed(0)}
-                  </span>
-                </button>
-              ))}
+                    <span className="font-semibold text-brand-600">
+                      €
+                      {(
+                        s.priceCents / 100
+                      ).toFixed(0)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
           <StepNav
             onBack={() => setStep(1)}
+            onNext={() => {
+              setTimeSlot(null);
+              setStep(3);
+            }}
+            nextDisabled={serviceIds.length === 0}
           />
         </div>
       )}
@@ -609,15 +677,19 @@ export default function BookingFlow() {
       {/* STAP 4: DATUM + TIJD */}
       {/* ================================================== */}
 
-      {step === 3 && selectedService && (
+      {step === 3 && selectedServices.length > 0 && (
         <div>
           <h2 className="font-display text-xl font-700 text-ink">
             Kies datum en tijdstip
           </h2>
 
           <p className="mt-1 text-sm text-ink/50">
-            {selectedModel?.name} —{" "}
-            {selectedService.name}
+            {selectedModel?.name
+              ? `${selectedModel.name} — `
+              : ""}
+            {selectedServices
+              .map((s) => s.name)
+              .join(", ")}
           </p>
 
           <input
@@ -739,18 +811,18 @@ export default function BookingFlow() {
             </Field>
           </div>
 
-          {selectedService && (
+          {selectedServices.length > 0 && (
             <div className="mt-5 rounded-lg bg-paper p-4 text-sm text-ink/70">
               <strong className="text-ink">
                 {selectedModel
                   ? `${selectedModel.name} — `
                   : ""}
-                {selectedService.name}
+                {selectedServices
+                  .map((s) => s.name)
+                  .join(", ")}
               </strong>{" "}
-              — {date} om {timeSlot} — €
-              {(
-                selectedService.priceCents / 100
-              ).toFixed(0)}
+              — {date} om {timeSlot} — totaal €
+              {(totalPriceCents / 100).toFixed(0)}
             </div>
           )}
 
