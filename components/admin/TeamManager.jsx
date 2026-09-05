@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 const PERMISSIONS = [
   { key: "appointments", label: "Afspraken", description: "Bekijken, bevestigen, verzetten, annuleren." },
+  { key: "pos", label: "Kassa", description: "Kassa gebruiken en bonnetjes printen." },
+  { key: "products", label: "Voorraad & producten", description: "Producten en voorraad beheren." },
   { key: "pricing", label: "Diensten & prijzen", description: "Reparaties en prijzen beheren." },
   { key: "models", label: "Merken & modellen", description: "Merken en toestelmodellen beheren." },
   { key: "settings", label: "Afspraakinstellingen", description: "Openingstijden aanpassen." },

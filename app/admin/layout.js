@@ -4,7 +4,9 @@ import { getCurrentAdmin } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 
 const NAV_ITEMS = [
+  { href: "/admin/kassa", label: "Kassa", permission: "pos" },
   { href: "/admin/dashboard", label: "Afspraken", permission: "appointments" },
+  { href: "/admin/producten", label: "Voorraad & producten", permission: "products" },
   { href: "/admin/diensten", label: "Diensten & prijzen", permission: "pricing" },
   { href: "/admin/toestellen", label: "Merken & modellen", permission: "models" },
   { href: "/admin/instellingen", label: "Afspraakinstellingen", permission: "settings" },

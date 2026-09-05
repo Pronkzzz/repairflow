@@ -68,7 +68,54 @@ model Service {
   featured    Boolean       @default(false) // toont bij "Populaire reparaties" op homepage
   featuredOrder Int         @default(0)
     appointments Appointment[] // Removed abandoned model-toggle field
+  orderItems  OrderItem[]
   createdAt   DateTime      @default(now())
+}
+
+// Losse producten die je aan de balie verkoopt (screenprotectors, hoesjes,
+// kabels, ...) — los van de reparatiediensten hierboven.
+model Product {
+  id         String      @id @default(cuid())
+  name       String      // bv. "Screenprotector iPhone 13"
+  category   String      @default("Overig") // vrij label, bv. "Hoesjes", "Screenprotectors", "Kabels"
+  sku        String?
+  priceCents Int
+  stock      Int         @default(0)
+  active     Boolean     @default(true)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+// Eén kassaverkoop (bon). Los van Appointment: dit zijn balieverkopen
+// (reparatie meteen uitgevoerd/afgerekend en/of losse producten), niet
+// online geboekte afspraken.
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    Int         @unique @default(autoincrement()) // korte, oplopende bonnummers voor op het ticket
+  paymentMethod  String      // "cash" | "online"
+  status         String      @default("completed") // completed | cancelled
+  customerName   String?
+  totalCents     Int
+  cashierEmail   String?     // snapshot van de ingelogde medewerker op moment van verkoop
+  notes          String?
+  items          OrderItem[]
+  createdAt      DateTime    @default(now())
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  kind           String   // "repair" | "product"
+  name           String   // snapshot omschrijving, bv. "PlayStation 5 — Scherm vervangen"
+  unitPriceCents Int      // snapshot prijs per stuk op moment van verkoop
+  quantity       Int      @default(1)
+  lineTotalCents Int
+  serviceId      String?
+  service        Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
 
 model Appointment {

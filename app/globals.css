@@ -55,3 +55,38 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Kassabon printen (eticket-printer aan de balie).
+ *
+ * De bon wordt altijd gerenderd (buiten beeld, off-screen) zodat
+ * window.print() 'm meteen kan printen. Bij het printen wordt al
+ * de rest van de pagina verborgen en blijft alleen de bon over,
+ * op 80mm breedte (standaardbreedte thermische bonrol).
+ */
+.receipt-print-area {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  width: 80mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible;
+  }
+  .receipt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 2mm;
+  }
+}

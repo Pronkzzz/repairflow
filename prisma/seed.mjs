@@ -25,7 +25,7 @@ async function main() {
       email: adminEmail,
       passwordHash,
       role: "owner",
-      permissions: { appointments: true, pricing: true, models: true, settings: true },
+      permissions: { appointments: true, pos: true, products: true, pricing: true, models: true, settings: true },
     },
   });
   console.log(`Admin klaar: ${adminEmail} / wachtwoord: ${adminPassword}`);
