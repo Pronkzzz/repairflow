@@ -7,6 +7,20 @@ import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const category = await db.category.findUnique({ where: { slug } });
+  if (!category) return {};
+  const title = `${category.name} reparatie`;
+  const description = `${category.name} kapot? Bekijk alle mogelijke reparaties, kies je model en boek meteen online een afspraak bij RepairFlow.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/diensten/${category.slug}` },
+    openGraph: { title, description, url: `/diensten/${category.slug}` },
+  };
+}
+
 function ModelCard({ category, model }) {
   return (
     <Link

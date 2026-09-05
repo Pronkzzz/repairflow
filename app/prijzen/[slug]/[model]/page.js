@@ -7,6 +7,24 @@ import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
+export async function generateMetadata({ params }) {
+  const { slug, model: modelSlug } = await params;
+  const category = await db.category.findUnique({ where: { slug } });
+  if (!category) return {};
+  const model = await db.model.findUnique({
+    where: { categoryId_slug: { categoryId: category.id, slug: modelSlug } },
+  });
+  if (!model) return {};
+  const title = `${model.name} herstellen — prijs & duur`;
+  const description = `Wat kost het om je ${model.name} te laten herstellen? Bekijk alle reparaties met prijs en duur, en boek meteen online een afspraak.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/prijzen/${category.slug}/${model.slug}` },
+    openGraph: { title, description, url: `/prijzen/${category.slug}/${model.slug}` },
+  };
+}
+
 function durationText(service) {
   return service.durationUnit === "uur"
     ? `±${service.durationMin / 60} uur`

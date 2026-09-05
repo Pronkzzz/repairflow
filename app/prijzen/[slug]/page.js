@@ -7,6 +7,20 @@ import DeviceImage from "@/components/DeviceImage";
 
 export const revalidate = 0;
 
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const category = await db.category.findUnique({ where: { slug } });
+  if (!category) return {};
+  const title = `${category.name} reparatie — prijzen per model`;
+  const description = `Bekijk de prijzen voor het herstellen van je ${category.name}. Kies je model, zie meteen de kostprijs en boek online een afspraak.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/prijzen/${category.slug}` },
+    openGraph: { title, description, url: `/prijzen/${category.slug}` },
+  };
+}
+
 function ModelCard({ category, model }) {
   return (
     <Link
